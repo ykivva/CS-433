@@ -23,22 +23,26 @@ def forward_backward(y, tx, w, lambda_=0):
         grads (np.array): gradient with respect to model weights
     '''
     epsilon = 10**(-5)
-    x = np.hstack((np.ones(tx.shape[0], 1), tx))
-    h = x @ w
+
+    assert y.shape[0]==tx.shape[0], "First dimenstion of y doesn't match first dimentsion of tx"
+    assert tx.shape[1]==w.shape[0], "Second dimention of x doesn't match first dimention of w" 
+
+    h = tx @ w
     output = sigmoid(h)
     
     loss = -np.dot(y,  np.log(output)) - np.dot(1 - y, np.log(1 - output)) + lambda_ * np.linalg.norm(w[1:, ...])**2
-
-    doutput = y / (output + epsilon) + (1 - y) / (1 - output + epsilon)
+    
+    y_mat = y.reshape(y.shape[0], -1)
+    doutput = y_mat / (output + epsilon) + (1 - y_mat) / (1 - output + epsilon)
     dh = doutput * output * (1 - output)
-    dw = x.T @ dh
+    dw = tx.T @ dh
     grads = dw
     grads[1:, ...] += 2 * lambda_ * w[1:, ...] 
 
     return (loss, grads)
 
 
-def logistic_regression(y, tx, initial_w, max_iter, gamma):
+def logistic_regression(y, tx, initial_w, max_iter, gamma, batch_size=1):
     '''Stochastic Gradient Descent for logistic regression method
     
     Args:
@@ -51,17 +55,25 @@ def logistic_regression(y, tx, initial_w, max_iter, gamma):
         w (np.array): model weigths after the last iteration
         loss (float): loss value after the last iteration on corresponding batch
     '''
-    x = np.hstack((np.ones(tx.shape[0], 1), tx))
+    assert y.shape[0]==tx.shape[0], "First dimenstion of y doesn't match first dimentsion of tx"
+
+    #Adds bias parameters
+    x = tx.reshape(y.shape[0], -1)
+    x = np.hstack((np.ones(x.shape[0], 1), x))
     w = initial_w
+    assert x.shape[1]==w.shape[0], "Second dimention of x doesn't match first dimention of w" 
 
     for iter_ in range(max_iter):
-        loss, grads = forward_backward(y, x, w)
+        sample_num = np.random.choice(tx.shape[0], size=batch_size)
+        x_sgd = x[sample_num]
+        y_sgd = y[sample_num]
+        loss, grads = forward_backward(y_sgd, x_sgd, w)
         w -= gamma * grads
 
     return (w, loss)
 
 
-def reg_logistic_regression(y, tx, lambda_, initial_w, max_iter, gamma):
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iter, gamma, batch_size=1):
     '''Stochastic Gradient Descent for logistic regression method using batch size = 1
     
     Args:
@@ -75,13 +87,18 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iter, gamma):
         w (np.array): model weigths after the last iteration
         loss (float): loss value after the last iteration on corresponding batch
     '''
-    x = np.hstack((np.ones(tx.shape[0], 1), tx))
+    #Adds bias parameters
+    x = tx.reshape(y.shape[0], -1)
+    x = np.hstack((np.ones(x.shape[0], 1), x))
+    assert x.shape[1]==initial_w.shape[0], "Second dimention of x doesn't match first dimention of w" 
+
     w = initial_w
 
     for iter_ in range(max_iter):
-        sample_num = np.random.randint(tx.shape[0])
-        x_sgd = x[sample_num:sample_num+1]
-        loss, grads = forward_backward(y, x_sgd, w, lambda_)
+        sample_num = np.random.choice(tx.shape[0], size=batch_size)
+        x_sgd = x[sample_num]
+        y_sgd = y[sample_num]
+        loss, grads = forward_backward(y_sgd, x_sgd, w, lambda_)
         w -= gamma * grads
 
     return (w, loss)

@@ -17,17 +17,18 @@ class NN_Model():
             loss (string): name of the loss which will be applied to the output of the model
     """
 
-    def __init__(self, loss):
+    def __init__(self,  num_features, loss):
         """Initialize instance of NN_model
 
             Args:
+                num_features (int): number of input features
                 loss (string): loss which will be used for the output of model;
                     Possible values - L2Loss, NLLoss, BinaryCrossEntropy
         """
         self.parameters = {}
         self.grads = {}
         self.values = {}
-        self.output_size = None
+        self.output_size = num_features
         self.num_layers = 0
         self.loss = loss
 
@@ -41,12 +42,12 @@ class NN_Model():
         self.num_layers += 1
 
         w = np.random.randn(units, self.output_size)
-        b = np.zero(units)
+        b = np.zeros(units)
         self.output_size = units
 
         self.parameters[f'W{self.num_layers}'] = w
         self.parameters[f'b{self.num_layers}'] = b
-        self.parameters[f'a{num_layers}'] = activation
+        self.parameters[f'a{self.num_layers}'] = activation
 
     def predict(self, x):
         """Compute output of the model
@@ -73,29 +74,36 @@ class NN_Model():
                 batch_size (int): size of batch feeded to the model
                 epochs (int): number of training epochs
         """
-        indx = np.arange(x.shape[1])
-        if batch_size != None:
-            for epoch in range(epochs):
-                permut = np.random.permutation(indx)
-                x_shuffled = x[permut]
-                y_shuffled = y[permut]
+        indx = np.arange(x.shape[0])
+        if batch_size == None:
+            batch_size = x.shape[0]
+            
+        for epoch in range(epochs):
+            permut = np.random.permutation(indx)
+            x_shuffled = x[permut, ...]
+            y_shuffled = y[permut, ...]
+            if len(y_shuffled.shape) == 1:
+                y_shuffled = y_shuffled.reshape(len(y_shuffled), -1)
 
-                batch_start = 0
-                batch_end = batch_size
-                while batch_end <= x.shape[1]:
-                    x_batch = x_shuffled[batch_start:batch_end, :]
-                    y_batch = y_shuffled[batch_start:batch_end, :]
+            batch_start = 0
+            batch_end = batch_size
+            while batch_end <= x.shape[0]:
+                x_batch = x_shuffled[batch_start:batch_end, :]
+                y_batch = y_shuffled[batch_start:batch_end, :]
 
-                    output = self._forward(x_batch)
+                output = self._forward(x_batch)
 
-                    get_loss_grad =  getattr(self, f'_get_{self.loss}_grad')
-                    self.grads[f'a{self.num_layers}'] = get_loss_grad(output, y)
+                get_loss_grad =  getattr(self, f'_get_{self.loss}_grad')
 
-                    self._backward(lambda_)
-                    self._optimize(lr=lr)
+                loss_grad, loss = get_loss_grad(output, y_batch)
+                print(f'Epoch #{epoch}: {loss}')
 
-                    batch_start += batch_size
-                    batch_end += batch_size
+                self._backward(loss_grad, lambda_)
+                self._optimize(lr=lr)
+
+                batch_start += batch_size
+                batch_end += batch_size
+            
         
     def _forward(self, x):
         """Forward pass of the model. During forward pass it stores values of layers
@@ -109,7 +117,7 @@ class NN_Model():
         self.values['h0'] = x.copy()
         self.values['a0'] = x.copy()
         for num_layer in range(1, self.num_layers+1):
-            self.values[f'h{num_layer}'] = self.values[f'h{num_layer-1}'] @ self.parameters[f'W{num_layer}'].T
+            self.values[f'h{num_layer}'] = self.values[f'a{num_layer-1}'] @ self.parameters[f'W{num_layer}'].T
             self.values[f'h{num_layer}'] += self.parameters[f'b{num_layer}']
             activation = self.parameters[f'a{num_layer}']
             if activation != None:
@@ -130,12 +138,15 @@ class NN_Model():
         self.grads[f'a{self.num_layers}'] = loss_grad
         
         for num_layer in range(self.num_layers, 0, -1):
-            activation = self.parameters[f'a{self.num_layer}']
-            self.grads[f'h{num_layer}'] = getattr(
-                self,
-                f'_get_{activation}_grad')(self.values[f'h{num_layer}']) * self.grads[f'a{num_layer}']
+            activation = self.parameters[f'a{num_layer}']
+            if activation == None:
+                self.grads[f'h{num_layer}'] = self.grads[f'a{num_layer}'].copy()
+            else:        
+                self.grads[f'h{num_layer}'] = getattr(
+                    self,
+                    f'_get_{activation}_grad')(self.values[f'h{num_layer}']) * self.grads[f'a{num_layer}']
             
-            self.grads[f'W{num_layer}'] = self.grads[f'h{num_layer}'] @ self.values[f'h{num_layer-1}']
+            self.grads[f'W{num_layer}'] = self.grads[f'h{num_layer}'].T @ self.values[f'a{num_layer-1}']
             self.grads[f'b{num_layer}'] = np.sum(self.grads[f'h{num_layer}'], axis=0)
             
             self.grads[f'W{num_layer}'] += 2 * lambda_ * self.parameters[f'W{num_layer}']
@@ -150,7 +161,7 @@ class NN_Model():
         """
         for num_layer in range(self.num_layers, 0, -1):
             self.parameters[f'W{num_layer}'] -= lr * self.grads[f'W{num_layer}']
-            self.parameters[f'b{num_layer}'] -= lr * self.grads[f'W{num_layer}']
+            self.parameters[f'b{num_layer}'] -= lr * self.grads[f'b{num_layer}']
 
     @staticmethod
     def softmax(output, axis=1):
@@ -203,9 +214,9 @@ class NN_Model():
                 target (nd.array): true value
             
             Returns:
-                Computed gradients
+                Computed gradients and loss
         """
-        return (pred - target) / pred.size
+        return (pred - target) / pred.size, NN_Model.L2Loss(pred, target)
         
     @staticmethod
     def NLLoss(pred, target):
@@ -231,9 +242,9 @@ class NN_Model():
                 epsilon (float): value added to the denominator to prevent division by 0 
             
             Returns:
-                Computed gradients
+                Computed gradients and loss
         """
-        return -target * 1 / ((pred + epsilon) * len(target))
+        return -target * 1 / ((pred + epsilon) * len(target)), NN_Model.NLLoss(pred, target)
     
     @staticmethod
     def sigmoid(output):
@@ -284,8 +295,8 @@ class NN_Model():
                 epsilon (float): value added to the denominator to prevent division by 0 
             
             Returns:
-                Computed gradients
+                Computed gradients and loss
         """
         target_mat = target.reshape(target.shape[0], -1)
         grad = -target_mat / pred + (1 - target_mat) / (1 - pred)
-        return grad / len(target)
+        return grad / len(target), NN_Model.BinaryCrossEntropy(pred, target)

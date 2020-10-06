@@ -4,9 +4,8 @@ from linear_regression import least_squares
 
 
 class Preprocessing:
-    
-    
-    def __init__(self, use_transformations=True, use_standartization=True, handling_outliers='predict'):
+        
+    def __init__(self, use_transformations=True, use_normalization=True, handling_outliers='predict'):
         
         self.categorical_col = 22
         self.categories_num = 4
@@ -31,7 +30,7 @@ class Preprocessing:
             26: lambda x: np.log(x-29)
         }
         self.use_transformations = use_transformations
-        self.use_standartization = use_standartization
+        self.use_normalization = use_normalization
         self.handling_outliers = handling_outliers
         assert (self.handling_outliers in ['fill_mean', 'remove', 'predict'])
         
@@ -46,7 +45,6 @@ class Preprocessing:
         self.means = None
         self.stds = None
     
-    
     def fit(self, train_data):
         
         data = train_data.copy() #do not want to change train_data
@@ -54,13 +52,12 @@ class Preprocessing:
         if self.use_transformations:
             self.transform(data)
         data = self.convert_categories_to_one_hot(data)
-        if self.use_standartization:
+        if self.use_normalization:
             self.means = np.nanmean(data[:,:self.numerical_features], axis=0)
             self.stds = np.nanstd(data[:,:self.numerical_features], axis=0)
-            self.standardize(data)
+            self.normalize(data)
         if self.handling_outliers == 'predict':
             self.evaluate_weights_for_missing_values_prediction(data)
-    
     
     def preprocess(self, data_):
 
@@ -69,8 +66,8 @@ class Preprocessing:
         if self.use_transformations:
             self.transform(data)
         data = self.convert_categories_to_one_hot(data)
-        if self.use_standartization:
-            self.standardize(data)
+        if self.use_normalization:
+            self.normalize(data)
         if self.handling_outliers == 'remove':
             data = self.remove_rows_with_NaNs(data)
         elif self.handling_outliers == 'fill_mean':
@@ -83,22 +80,17 @@ class Preprocessing:
             raise ValueError('Value of handling_NaNs is not acceptable')
         return data
     
-    
     def replace_outliers_by_nan(self, data):
-        for col in self.cols_with_outliers:
-            data[data[:,col] == self.outlier,col] = np.nan
+        data[data==self.outlier] = np.nan
     
-    
-    def standardize(self, data):
+    def normalize(self, data):
         if (self.means is None or self.stds is None):
-            raise Exception('Cannot standardize data: need to fit train_data first')
+            raise Exception('Cannot normalize data: need to fit train_data first')
         data[:,:self.numerical_features] = (data[:,:self.numerical_features]-self.means)/self.stds
-    
     
     def transform(self, data):
         for col in self.transformations.keys():
             data[:,col] = self.transformations[col](data[:,col])
-    
     
     def convert_categories_to_one_hot(self, data):
         
@@ -113,7 +105,6 @@ class Preprocessing:
         data = np.concatenate([data_numerical, data_categorical], axis=1)
         return data
     
-    
     def evaluate_weights_for_missing_values_prediction(self, train_data):
         
         X = train_data[:, self.cols_without_NaNs]
@@ -121,17 +112,14 @@ class Preprocessing:
             Y_known = train_data[~np.isnan(train_data[:,col]), col]
             X_ = X[~np.isnan(train_data[:,col]), :]
             self.weights_for_missing_values_prediction[col], _ = least_squares(Y_known, X_)
-    
-    
+        
     def remove_rows_with_NaNs(self, data):
         return data[:,self.cols_without_NaNs]
 
-    
     def fill_NaNs_with_zeroes(self, data_):
         data = data_.copy() #do not want to change data_
         data[np.isnan(data)] = 0
         return data
-    
     
     def predict_NaNs(self, data_):
         
@@ -144,4 +132,6 @@ class Preprocessing:
             data[np.isnan(data[:,col]), col] = np.dot(X[np.isnan(data[:,col]), :],
                                                       self.weights_for_missing_values_prediction[col])
         return data
+
+    def 
         

@@ -62,7 +62,7 @@ class NN_Model():
         return output
         
     
-    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1):
+    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0):
         """Train model
 
             Args:
@@ -73,12 +73,15 @@ class NN_Model():
                 lambda_ (int): regularization coeff
                 batch_size (int): size of batch feeded to the model
                 epochs (int): number of training epochs
+                verbose (int): if equals to 1, it will output loss for every 10 epochs
         """
+        loss = 1e10
         indx = np.arange(x.shape[0])
         if batch_size == None:
             batch_size = x.shape[0]
-            
-        for epoch in range(epochs):
+        
+        print('Training started')
+        for epoch in range(1, epochs+1):
             permut = np.random.permutation(indx)
             x_shuffled = x[permut, ...]
             y_shuffled = y[permut, ...]
@@ -87,6 +90,8 @@ class NN_Model():
 
             batch_start = 0
             batch_end = batch_size
+            num_batches = x.shape[0] // batch_size
+            sum_loss = 0
             while batch_end <= x.shape[0]:
                 x_batch = x_shuffled[batch_start:batch_end, :]
                 y_batch = y_shuffled[batch_start:batch_end, :]
@@ -96,7 +101,7 @@ class NN_Model():
                 get_loss_grad =  getattr(self, f'_get_{self.loss}_grad')
 
                 loss_grad, loss = get_loss_grad(output, y_batch)
-                print(f'Epoch #{epoch}: {loss}')
+                sum_loss += loss
 
                 self._backward(loss_grad, lambda_)
                 self._optimize(lr=lr)
@@ -104,6 +109,10 @@ class NN_Model():
                 batch_start += batch_size
                 batch_end += batch_size
             
+            if verbose==1:
+                    print(f'Epoch #{epoch}: {sum_loss / num_batches}')
+        
+        print('Training ended')
         
     def _forward(self, x):
         """Forward pass of the model. During forward pass it stores values of layers
@@ -282,7 +291,8 @@ class NN_Model():
             Returns:
                 Computed BinaryCrossEntropy loss
         """
-        loss = np.sum(-(np.dot(target, np.log(pred)) + np.dot(1-target, np.log(1-pred)))) / len(target)
+        target_mat = target.reshape(target.shape[0], -1)
+        loss = np.sum(-(target_mat @ np.log(pred).T + (1-target_mat) @ np.log(1-pred).T)) / len(target)
         return loss
     
     @staticmethod

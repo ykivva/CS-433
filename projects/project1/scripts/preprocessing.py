@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from linear_regression import least_squares
+from nn_model import *
 
 
 class Preprocessing:
@@ -57,7 +58,9 @@ class Preprocessing:
             self.stds = np.nanstd(data[:,:self.numerical_features], axis=0)
             self.normalize(data)
         if self.handling_outliers == 'predict':
-            self.evaluate_weights_for_missing_values_prediction(data)
+            data = self.predict_Nans(data)
+        
+        return data
     
     def preprocess(self, data_):
 
@@ -104,14 +107,31 @@ class Preprocessing:
                 data_categorical[i,int(val)] = 1
         data = np.concatenate([data_numerical, data_categorical], axis=1)
         return data
-    
-    def evaluate_weights_for_missing_values_prediction(self, train_data):
+
+    @staticmethod
+    def get_cols_without_NaN(data):
+        mask = np.any(np.isnan(data), axis=0)
+        return data[..., ~mask] 
+
+    def predict_Nans(self, data_, lr=0.03, lambda_=1, batch_size=32, epochs=100):
+        data = data_.copy()
+        for j in range(data.shape[1]):
+            if not np.any(np.isnan(data[:, j])):
+                continue
+
+            features = Preprocessing.get_cols_without_NaN(data)
+            mask_rows_with_nan = np.isnan(data[:, j])
+            train_features = features[~mask_rows_with_nan, ...]
+            train_labels = data[~mask_rows_with_nan, j]
+
+            model = NN_Model(train_features.shape[1], loss='L2Loss')
+            model.add_layer(1)
+
+            model.train(train_features, train_labels, lr = lr, lambda_=lambda_, batch_size=batch_size, epochs=epochs, verbose=1)
+
+            data[mask_rows_with_nan, j:j+1] = model.predict(features[mask_rows_with_nan, ...])
         
-        X = train_data[:, self.cols_without_NaNs]
-        for col in self.cols_with_NaNs:
-            Y_known = train_data[~np.isnan(train_data[:,col]), col]
-            X_ = X[~np.isnan(train_data[:,col]), :]
-            self.weights_for_missing_values_prediction[col], _ = least_squares(Y_known, X_)
+        return data
         
     def remove_rows_with_NaNs(self, data):
         return data[:,self.cols_without_NaNs]
@@ -119,19 +139,4 @@ class Preprocessing:
     def fill_NaNs_with_zeroes(self, data_):
         data = data_.copy() #do not want to change data_
         data[np.isnan(data)] = 0
-        return data
-    
-    def predict_NaNs(self, data_):
-        
-        if len(self.weights_for_missing_values_prediction) == 0:
-            raise Exception('Cannot predict NaN values: need to fit train_data first')
-        data = data_.copy() #do not want to change data_
-        X = data[:, self.cols_without_NaNs]
-        X = np.concatenate([np.ones(shape=(X.shape[0], 1)), X], axis=1) #add bias term
-        for col in self.cols_with_NaNs:
-            data[np.isnan(data[:,col]), col] = np.dot(X[np.isnan(data[:,col]), :],
-                                                      self.weights_for_missing_values_prediction[col])
-        return data
-
-    def 
-        
+        return data    

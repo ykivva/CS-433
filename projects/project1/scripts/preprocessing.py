@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from linear_regression import least_squares
-from nn_model import *
+from NNModel import *
 
 
 class Preprocessing:
@@ -124,7 +124,7 @@ class Preprocessing:
             train_features = features[~mask_rows_with_nan, ...]
             train_labels = data[~mask_rows_with_nan, j]
 
-            model = NN_Model(train_features.shape[1], loss='L2Loss')
+            model = NNModel(train_features.shape[1], loss='l2')
             model.add_layer(1)
 
             model.train(train_features, train_labels, lr = lr, lambda_=lambda_, batch_size=batch_size, epochs=epochs, verbose=1)

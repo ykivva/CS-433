@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class NN_Model():
+class NNModel():
     """ Class for simple Neural Networks which can solve classification and regression problems
     
         Args:
@@ -17,20 +17,19 @@ class NN_Model():
             loss (string): name of the loss which will be applied to the output of the model
     """
 
-    def __init__(self,  num_features, loss):
-        """Initialize instance of NN_model
+    def __init__(self,  num_features):
+        """Initialize instance of NNModel
 
             Args:
                 num_features (int): number of input features
                 loss (string): loss which will be used for the output of model;
-                    Possible values - L2Loss, NLLoss, BinaryCrossEntropy
+                    Possible values - l2, cross_entropy, logistic_reg
         """
         self.parameters = {}
         self.grads = {}
         self.values = {}
         self.output_size = num_features
         self.num_layers = 0
-        self.loss = loss
 
     def add_layer(self, units, activation=None):
         """Add layer to the end of the model
@@ -62,7 +61,7 @@ class NN_Model():
         return output
         
     
-    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0):
+    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0, lost_fun='l2'):
         """Train model
 
             Args:
@@ -93,12 +92,12 @@ class NN_Model():
             num_batches = x.shape[0] // batch_size
             sum_loss = 0
             while batch_end <= x.shape[0]:
-                x_batch = x_shuffled[batch_start:batch_end, :]
-                y_batch = y_shuffled[batch_start:batch_end, :]
+                x_batch = x_shuffled[batch_start:batch_end, ...]
+                y_batch = y_shuffled[batch_start:batch_end, ...]
 
                 output = self._forward(x_batch)
 
-                get_loss_grad =  getattr(self, f'_get_{self.loss}_grad')
+                get_loss_grad =  getattr(NNModel, f'_get_{self.loss}_grad')
 
                 loss_grad, loss = get_loss_grad(output, y_batch)
                 sum_loss += loss
@@ -130,7 +129,7 @@ class NN_Model():
             self.values[f'h{num_layer}'] += self.parameters[f'b{num_layer}']
             activation = self.parameters[f'a{num_layer}']
             if activation != None:
-                act_method = getattr(NN_Model, activation)
+                act_method = getattr(NNModel, activation)
                 self.values[f'a{num_layer}'] = act_method(self.values[f'h{num_layer}'])
             else:
                 self.values[f'a{num_layer}'] = self.values[f'h{num_layer}'].copy()
@@ -152,7 +151,7 @@ class NN_Model():
                 self.grads[f'h{num_layer}'] = self.grads[f'a{num_layer}'].copy()
             else:        
                 self.grads[f'h{num_layer}'] = getattr(
-                    self,
+                    NNModel,
                     f'_get_{activation}_grad')(self.values[f'h{num_layer}']) * self.grads[f'a{num_layer}']
             
             self.grads[f'W{num_layer}'] = self.grads[f'h{num_layer}'].T @ self.values[f'a{num_layer-1}']
@@ -169,7 +168,7 @@ class NN_Model():
                 lr (int): learning rate
         """
         for num_layer in range(self.num_layers, 0, -1):
-            self.parameters[f'W{num_layer}'] -= lr * self.grads[f'W{num_layer}']
+            self.parameters[f'W{num_layer}'] = lr * self.grads[f'W{num_layer}']
             self.parameters[f'b{num_layer}'] -= lr * self.grads[f'b{num_layer}']
 
     @staticmethod
@@ -197,26 +196,26 @@ class NN_Model():
             Returns:
                 Computed gradients
         """
-        act = NN_Model.softmax(output)
+        act = NNModel.softmax(output)
         return act * (1 - act)
 
     @staticmethod
-    def L2Loss(pred, target):
-        """Computes L2Loss
+    def l2(pred, target):
+        """Computes l2
 
             Args:
                 pred (nd.array): prediction of the model
                 target (nd.array): true value
             
             Returns:
-                Computed L2Loss
+                Computed l2
         """
         loss = np.sum((pred - target)**2) / (2*pred.size)
         return loss
     
     @staticmethod
-    def _get_L2Loss_grad(pred, target):
-        """Computes gradients of L2Loss with respect to the pred
+    def _get_l2_grad(pred, target):
+        """Computes gradients of l2 with respect to the pred
 
             Args:
                 pred (nd.array): prediction of the model
@@ -225,25 +224,25 @@ class NN_Model():
             Returns:
                 Computed gradients and loss
         """
-        return (pred - target) / pred.size, NN_Model.L2Loss(pred, target)
+        return (pred - target) / pred.size, NNModel.l2(pred, target)
         
     @staticmethod
-    def NLLoss(pred, target):
-        """Computes Negative Loss Likelihood
+    def cross_entropy(pred, target):
+        """Computes Negative Log Likelihood
 
             Args:
                 pred (nd.array): prediction of the model
                 target (nd.array): true value (true value in format of one-hot vector)
             
             Returns:
-                Computed NLLoss
+                Computed cross_entropy
         """
         loss = np.sum(target * (-np.log(pred))) / len(target)
         return loss
     
     @staticmethod
-    def _get_NLLoss_grad(pred, target, epsilon=1e-9):
-        """Computes gradients of L2Loss with respect to the pred
+    def _get_cross_entropy_grad(pred, target, epsilon=1e-9):
+        """Computes gradients of negative log likelihood with respect to the pred
 
             Args:
                 pred (nd.array): prediction of the model
@@ -253,7 +252,7 @@ class NN_Model():
             Returns:
                 Computed gradients and loss
         """
-        return -target * 1 / ((pred + epsilon) * len(target)), NN_Model.NLLoss(pred, target)
+        return -target * 1 / ((pred + epsilon) * len(target)), NNModel.cross_entropy(pred, target)
     
     @staticmethod
     def sigmoid(output, lower_bound=-10, upper_bound=10):
@@ -280,26 +279,26 @@ class NN_Model():
             Returns:
                 Computed gradients
         """
-        act = NN_Model.sigmoid(output)
+        act = NNModel.sigmoid(output)
         return act * (1 - act)
 
     @staticmethod
-    def BinaryCrossEntropy(pred, target):
-        """Computes BinaryCrossEntropy loss
+    def logistic_reg(pred, target):
+        """Computes logistic_reg loss
 
             Args:
                 pred (nd.array): prediction of the model
                 target (nd.array): true value
             
             Returns:
-                Computed BinaryCrossEntropy loss
+                Computed logistic_reg loss
         """
         target_mat = target.reshape(target.shape[0], -1)
         loss = np.sum(-(target_mat @ np.log(pred).T + (1-target_mat) @ np.log(1-pred).T)) / len(target)
         return loss
     
     @staticmethod
-    def _get_BinaryCrossEntropy_grad(pred, target, epsilon=1e-9):
+    def _get_logistic_reg_grad(pred, target, epsilon=1e-9):
         """Computes gradients of Binary Cross Entropy loss with respect to the pred
 
             Args:
@@ -312,4 +311,5 @@ class NN_Model():
         """
         target_mat = target.reshape(target.shape[0], -1)
         grad = -target_mat / (pred + epsilon) + (1 - target_mat) / (1 - pred + epsilon)
-        return grad / len(target), NN_Model.BinaryCrossEntropy(pred, target)
+        return grad / len(target), NNModel.logistic_reg(pred, target)
+    

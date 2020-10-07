@@ -242,7 +242,7 @@ class NN_Model():
         return loss
     
     @staticmethod
-    def _get_NLLoss_grad(pred, target, epsilon=1e-15):
+    def _get_NLLoss_grad(pred, target, epsilon=1e-9):
         """Computes gradients of L2Loss with respect to the pred
 
             Args:
@@ -256,7 +256,7 @@ class NN_Model():
         return -target * 1 / ((pred + epsilon) * len(target)), NN_Model.NLLoss(pred, target)
     
     @staticmethod
-    def sigmoid(output):
+    def sigmoid(output, lower_bound=-10, upper_bound=10):
         """Computes sigmoid function
 
             Args:
@@ -265,7 +265,10 @@ class NN_Model():
             Returns:
                 Computed sigmoid function
         """
-        return 1. / (1 + np.exp(-output))
+        output_bounded = output.copy()
+        output_bounded[output>upper_bound] = upper_bound
+        output_bounded[output<lower_bound] = lower_bound
+        return 1. / (1 + np.exp(-output_bounded))
 
     @staticmethod
     def _get_sigmoid_grad(output):
@@ -296,7 +299,7 @@ class NN_Model():
         return loss
     
     @staticmethod
-    def _get_BinaryCrossEntropy_grad(pred, target, epsilon=1e-15):
+    def _get_BinaryCrossEntropy_grad(pred, target, epsilon=1e-9):
         """Computes gradients of Binary Cross Entropy loss with respect to the pred
 
             Args:
@@ -308,5 +311,5 @@ class NN_Model():
                 Computed gradients and loss
         """
         target_mat = target.reshape(target.shape[0], -1)
-        grad = -target_mat / pred + (1 - target_mat) / (1 - pred)
+        grad = -target_mat / (pred + epsilon) + (1 - target_mat) / (1 - pred + epsilon)
         return grad / len(target), NN_Model.BinaryCrossEntropy(pred, target)

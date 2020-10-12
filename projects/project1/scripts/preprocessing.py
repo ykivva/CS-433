@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from linear_regression import least_squares
-from NNModel import *
+from nn_model import NNModel
 
 
 class Preprocessing:
@@ -11,7 +10,7 @@ class Preprocessing:
         self.categorical_col = 22
         self.categories_num = 4
         self.numerical_features = 29
-        self.cols_with_outliers = [0, 4, 5, 6, 12, 23, 24, 25, 26, 27, 28]
+        self.cols_with_outliers = np.array([0, 4, 5, 6, 12, 23, 24, 25, 26, 27, 28])
         self.outlier = -999.
         self.transformations = {
             0: np.log,
@@ -41,47 +40,33 @@ class Preprocessing:
         arr = np.array([True]*total_cols)
         arr[self.cols_with_NaNs] = False
         self.cols_without_NaNs = np.arange(total_cols)[arr]
-        self.weights_for_missing_values_prediction = {}
         
         self.means = None
         self.stds = None
     
-    def fit(self, train_data):
-        
-        data = train_data.copy() #do not want to change train_data
-        self.replace_outliers_by_nan(data)
-        if self.use_transformations:
-            self.transform(data)
-        data = self.convert_categories_to_one_hot(data)
-        if self.use_normalization:
-            self.means = np.nanmean(data[:,:self.numerical_features], axis=0)
-            self.stds = np.nanstd(data[:,:self.numerical_features], axis=0)
-            self.normalize(data)
-        if self.handling_outliers == 'predict':
-            data = self.predict_Nans(data)
-        
-        return data
-    
-    def preprocess(self, data_):
+    def preprocess(self, data_, lr=0.03, lambda_=1, batch_size=32, epochs=100, degrees=np.arange(2, 4), train=True, models={}):
 
         data = data_.copy() #do not want to change data_
         self.replace_outliers_by_nan(data)
         if self.use_transformations:
             self.transform(data)
         data = self.convert_categories_to_one_hot(data)
+        
+        data = self.build_poly(data, degrees, self.cols_without_NaNs)
         if self.use_normalization:
+            self.means = np.nanmean(data[:,:self.numerical_features], axis=0)
+            self.stds = np.nanstd(data[:,:self.numerical_features], axis=0)
             self.normalize(data)
+
         if self.handling_outliers == 'remove':
-            data = self.remove_rows_with_NaNs(data)
+            data = self.remove_cols_with_NaNs(data)
         elif self.handling_outliers == 'fill_mean':
             data = self.fill_NaNs_with_zeroes(data)
         elif self.handling_outliers == 'predict':
-            print_nans_per_column(data)
-            data = self.predict_NaNs(data)
-            print_nans_per_column(data)
+            data, models = self.predict_Nans(data, lr=lr, lambda_=lambda_, batch_size=batch_size, epochs=epochs, train=train, models=models)
         else:
             raise ValueError('Value of handling_NaNs is not acceptable')
-        return data
+        return data, models
     
     def replace_outliers_by_nan(self, data):
         data[data==self.outlier] = np.nan
@@ -113,30 +98,58 @@ class Preprocessing:
         mask = np.any(np.isnan(data), axis=0)
         return data[..., ~mask] 
 
-    def predict_Nans(self, data_, lr=0.03, lambda_=1, batch_size=32, epochs=100):
+    def predict_Nans(self, data_, lr=0.03, lambda_=1, batch_size=32, epochs=100, train=True, models={}):
         data = data_.copy()
+        models = models
         for j in range(data.shape[1]):
             if not np.any(np.isnan(data[:, j])):
                 continue
 
             features = Preprocessing.get_cols_without_NaN(data)
             mask_rows_with_nan = np.isnan(data[:, j])
-            train_features = features[~mask_rows_with_nan, ...]
-            train_labels = data[~mask_rows_with_nan, j]
 
-            model = NNModel(train_features.shape[1], loss='l2')
-            model.add_layer(1)
+            if train:
+                train_features = features[~mask_rows_with_nan, ...]
+                train_labels = data[~mask_rows_with_nan, j]
 
-            model.train(train_features, train_labels, lr = lr, lambda_=lambda_, batch_size=batch_size, epochs=epochs, verbose=1)
+                models[j] = NNModel(train_features.shape[1])
+                model = models[j]
+                model.add_layer(1)
+
+                model.train(train_features, train_labels, lr = lr, lambda_=lambda_, batch_size=batch_size, epochs=epochs, verbose=1, loss_fun='l2')
+            else:
+                model = models[j]
 
             data[mask_rows_with_nan, j:j+1] = model.predict(features[mask_rows_with_nan, ...])
         
-        return data
+        return data, models
         
     def remove_rows_with_NaNs(self, data):
-        return data[:,self.cols_without_NaNs]
+        mask = np.isnan(data)
+        mask_rows_with_nan = np.any(mask, axis=1)
+        return data[mask_rows_with_nan, ...]
+
+    def remove_cols_with_NaNs(self, data):
+        mask = np.isnan(data)
+        mask_cols_with_nan = np.any(mask, axis=0)
+        return data[..., mask_cols_with_nan]
 
     def fill_NaNs_with_zeroes(self, data_):
         data = data_.copy() #do not want to change data_
         data[np.isnan(data)] = 0
         return data    
+    
+    def build_poly(self, data_, degrees, columns):
+        data = data_.copy()
+
+        for deg in degrees:
+            pol_data = data[..., columns]**deg
+            data = np.hstack((pol_data, data))
+        
+        num_col_added = len(degrees) * len(columns)
+        self.numerical_features += num_col_added
+        self.cols_without_NaNs += num_col_added
+        self.cols_with_NaNs += num_col_added
+        self.cols_without_NaNs = np.hstack((self.cols_without_NaNs, np.arange(num_col_added)))
+        self.cols_with_outliers += num_col_added
+        return data

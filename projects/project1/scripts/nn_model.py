@@ -12,23 +12,23 @@ class NNModel():
                     b{int} - bias parameters to compute the {int}th layer
                     a{int} - activation function called for {int}th layer
             values (dict): for each layer stores their value before and after applying activation function
-            output_size (int): last dimentsion of the last layer of the model
+            features_out (int): last dimentsion of the last layer of the model
             num_layers (int): number of layers in the model
             loss (string): name of the loss which will be applied to the output of the model
     """
 
-    def __init__(self,  num_features):
+    def __init__(self,  features_in):
         """Initialize instance of NNModel
 
             Args:
-                num_features (int): number of input features
+                features_in (int): number of input features
                 loss (string): loss which will be used for the output of model;
                     Possible values - l2, cross_entropy, logistic_reg
         """
         self.parameters = {}
         self.grads = {}
         self.values = {}
-        self.output_size = num_features
+        self.features_out = features_in
         self.num_layers = 0
 
     def add_layer(self, units, activation=None):
@@ -40,9 +40,9 @@ class NNModel():
         """
         self.num_layers += 1
 
-        w = np.random.randn(units, self.output_size)
+        w = np.random.randn(units, self.features_out)
         b = np.zeros(units)
-        self.output_size = units
+        self.features_out = units
 
         self.parameters[f'W{self.num_layers}'] = w
         self.parameters[f'b{self.num_layers}'] = b
@@ -61,7 +61,7 @@ class NNModel():
         return output
         
     
-    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0, lost_fun='l2'):
+    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0, loss_fun='l2'):
         """Train model
 
             Args:
@@ -80,6 +80,7 @@ class NNModel():
             batch_size = x.shape[0]
         
         print('Training started')
+        decay = 1
         for epoch in range(1, epochs+1):
             permut = np.random.permutation(indx)
             x_shuffled = x[permut, ...]
@@ -92,24 +93,26 @@ class NNModel():
             num_batches = x.shape[0] // batch_size
             sum_loss = 0
             while batch_end <= x.shape[0]:
+                decay += 0.5
                 x_batch = x_shuffled[batch_start:batch_end, ...]
                 y_batch = y_shuffled[batch_start:batch_end, ...]
 
                 output = self._forward(x_batch)
 
-                get_loss_grad =  getattr(NNModel, f'_get_{self.loss}_grad')
+                get_loss_grad =  getattr(NNModel, f'_get_{loss_fun}_grad')
 
                 loss_grad, loss = get_loss_grad(output, y_batch)
                 sum_loss += loss
 
                 self._backward(loss_grad, lambda_)
-                self._optimize(lr=lr)
+                self._optimize(lr=lr/decay)
 
                 batch_start += batch_size
                 batch_end += batch_size
             
             if verbose==1:
-                    print(f'Epoch #{epoch}: {sum_loss / num_batches}')
+                bar  = (epoch*20//epochs)*"#" + " " * (20 - (epoch*20//epochs))
+                print(f'\r>Epoch #{epoch}:\t[{bar}]; Loss: {sum_loss / num_batches}', end='')
         
         print('Training ended')
         
@@ -167,8 +170,8 @@ class NNModel():
             Args: 
                 lr (int): learning rate
         """
-        for num_layer in range(self.num_layers, 0, -1):
-            self.parameters[f'W{num_layer}'] = lr * self.grads[f'W{num_layer}']
+        for num_layer in range(1, self.num_layers+1):
+            self.parameters[f'W{num_layer}'] -= lr * self.grads[f'W{num_layer}']
             self.parameters[f'b{num_layer}'] -= lr * self.grads[f'b{num_layer}']
 
     @staticmethod
@@ -255,7 +258,7 @@ class NNModel():
         return -target * 1 / ((pred + epsilon) * len(target)), NNModel.cross_entropy(pred, target)
     
     @staticmethod
-    def sigmoid(output, lower_bound=-10, upper_bound=10):
+    def sigmoid(output, lower_bound=-30, upper_bound=30):
         """Computes sigmoid function
 
             Args:
@@ -293,8 +296,9 @@ class NNModel():
             Returns:
                 Computed logistic_reg loss
         """
-        target_mat = target.reshape(target.shape[0], -1)
-        loss = np.sum(-(target_mat @ np.log(pred).T + (1-target_mat) @ np.log(1-pred).T)) / len(target)
+        pred_sq = np.squeeze(pred)
+        target_sq = np.squeeze(target)
+        loss = np.sum(-(np.dot(target_sq, np.log(pred_sq)) + np.dot((1-target_sq), np.log(1-pred_sq)))) / len(target_sq)
         return loss
     
     @staticmethod
@@ -309,7 +313,6 @@ class NNModel():
             Returns:
                 Computed gradients and loss
         """
-        target_mat = target.reshape(target.shape[0], -1)
-        grad = -target_mat / (pred + epsilon) + (1 - target_mat) / (1 - pred + epsilon)
+        grad = -target / (pred + epsilon) + (1 - target) / (1 - pred + epsilon)
         return grad / len(target), NNModel.logistic_reg(pred, target)
     

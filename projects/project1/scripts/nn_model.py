@@ -42,11 +42,26 @@ class NNModel():
 
         w = np.random.randn(units, self.features_out)
         b = np.zeros(units)
+
+        self.grads[f'mW{self.num_layers}'] = np.zeros((units, self.features_out))
+        self.grads[f'mb{self.num_layers}'] = np.zeros(units)
+        self.grads[f'W{self.num_layers}'] = np.zeros((units, self.features_out))
+        self.grads[f'b{self.num_layers}'] = np.zeros(units)
+
         self.features_out = units
 
         self.parameters[f'W{self.num_layers}'] = w
         self.parameters[f'b{self.num_layers}'] = b
         self.parameters[f'a{self.num_layers}'] = activation
+
+    def zero_grad(self):
+        for i in range(1, self.num_layers+1):
+            self.grads[f'mW{self.num_layers}'] -= self.grads[f'mW{self.num_layers}']
+            self.grads[f'mb{self.num_layers}'] -= self.grads[f'mb{self.num_layers}']
+            self.grads[f'W{self.num_layers}'] -= self.grads[f'W{self.num_layers}']
+            self.grads[f'b{self.num_layers}'] -= self.grads[f'b{self.num_layers}']
+
+
 
     def predict(self, x):
         """Compute output of the model
@@ -61,7 +76,7 @@ class NNModel():
         return output
         
     
-    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0, loss_fun='l2'):
+    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0, loss_fun='l2', momentum=0):
         """Train model
 
             Args:
@@ -74,6 +89,8 @@ class NNModel():
                 epochs (int): number of training epochs
                 verbose (int): if equals to 1, it will output loss for every 10 epochs
         """
+        self.zero_grad()
+
         loss = 1e10
         indx = np.arange(x.shape[0])
         if batch_size == None:
@@ -105,7 +122,7 @@ class NNModel():
                 sum_loss += loss
 
                 self._backward(loss_grad, lambda_)
-                self._optimize(lr=lr/decay)
+                self._optimize(lr=lr/decay, momentum=0)
 
                 batch_start += batch_size
                 batch_end += batch_size
@@ -114,7 +131,7 @@ class NNModel():
                 bar  = (epoch*20//epochs)*"#" + " " * (20 - (epoch*20//epochs))
                 print(f'\r>Epoch #{epoch}:\t[{bar}]; Loss: {sum_loss / num_batches}', end='')
         
-        print('Training ended')
+        print('\nTraining ended\n')
         
     def _forward(self, x):
         """Forward pass of the model. During forward pass it stores values of layers
@@ -164,15 +181,18 @@ class NNModel():
 
             self.grads[f'a{num_layer-1}'] = self.grads[f'h{num_layer}'] @ self.parameters[f'W{num_layer}']
 
-    def _optimize(self, lr):
+    def _optimize(self, lr, momentum=0):
         """Applies gradients to update the parameters
 
             Args: 
                 lr (int): learning rate
         """
         for num_layer in range(1, self.num_layers+1):
-            self.parameters[f'W{num_layer}'] -= lr * self.grads[f'W{num_layer}']
-            self.parameters[f'b{num_layer}'] -= lr * self.grads[f'b{num_layer}']
+            self.grads[f'mW{num_layer}'] = momentum * self.grads[f'mW{num_layer}'] - lr * self.grads[f'W{num_layer}']
+            self.grads[f'mb{num_layer}'] = momentum * self.grads[f'mb{num_layer}'] - lr * self.grads[f'b{num_layer}']
+
+            self.parameters[f'W{num_layer}'] += self.grads[f'mW{num_layer}']
+            self.parameters[f'b{num_layer}'] += self.grads[f'mb{num_layer}']
 
     @staticmethod
     def softmax(output, axis=1):

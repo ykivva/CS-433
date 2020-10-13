@@ -46,6 +46,7 @@ class Preprocessing:
     
     def preprocess(self, data_, lr=0.03, lambda_=1, batch_size=32, epochs=100, degrees=np.arange(2, 4), train=True, models={}):
 
+        print("Preprocesing started!\n")
         data = data_.copy() #do not want to change data_
         self.replace_outliers_by_nan(data)
         if self.use_transformations:
@@ -66,6 +67,8 @@ class Preprocessing:
             data, models = self.predict_Nans(data, lr=lr, lambda_=lambda_, batch_size=batch_size, epochs=epochs, train=train, models=models)
         else:
             raise ValueError('Value of handling_NaNs is not acceptable')
+
+        print("Preprocessing ended\n")
         return data, models
     
     def replace_outliers_by_nan(self, data):
@@ -132,7 +135,7 @@ class Preprocessing:
     def remove_cols_with_NaNs(self, data):
         mask = np.isnan(data)
         mask_cols_with_nan = np.any(mask, axis=0)
-        return data[..., mask_cols_with_nan]
+        return data[..., ~mask_cols_with_nan]
 
     def fill_NaNs_with_zeroes(self, data_):
         data = data_.copy() #do not want to change data_

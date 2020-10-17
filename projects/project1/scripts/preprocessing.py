@@ -48,7 +48,6 @@ class Preprocessing:
     
     def preprocess(self, data_):
 
-        print("Preprocesing started!\n")
         data = data_.copy() #do not want to change data_
         self.replace_outliers_by_nan(data)
         if self.use_transformations:
@@ -56,7 +55,7 @@ class Preprocessing:
         data = self.convert_categories_to_one_hot(data)
         
         if self.use_normalization:
-            if self.is_fitted == False:
+            if not self.is_fitted:
                 #fitting means and stds parameters
                 self.means = np.nanmean(data[:,:self.numerical_features], axis=0)
                 self.stds = np.nanstd(data[:,:self.numerical_features], axis=0)
@@ -74,7 +73,6 @@ class Preprocessing:
         
         if not self.is_fitted:
             self.is_fitted == True
-        print("Preprocessing ended\n")
         
         return data
     
@@ -82,8 +80,6 @@ class Preprocessing:
         data[data==self.outlier] = np.nan
     
     def normalize(self, data):
-        if (self.means is None or self.stds is None):
-            raise Exception('Cannot normalize data: need to fit train_data first')
         data[:,:self.numerical_features] = (data[:,:self.numerical_features]-self.means)/self.stds
     
     def transform(self, data):
@@ -134,5 +130,4 @@ class Preprocessing:
             pol_data = data[..., numerical_columns_without_NaNs]**deg
             data = np.hstack((pol_data, data))
         
-        num_col_added = (self.max_degree-1) * len(numerical_columns_without_NaNs)
         return data

@@ -2,7 +2,10 @@ import numpy as np
 
 
 def sigmoid(x):
-    return 1. / (1 + np.exp(-x))
+    res = x.copy()
+    res[res > 0] = 1. / (1 + np.exp(res[res>0]))
+    res[res < 0] = np.exp(res[res < 0]) / (1 + np.exp(res[res < 0]))
+    return res
 
 
 def softmax(output):
@@ -102,3 +105,9 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iter, gamma, batch_si
         w -= gamma * grads
 
     return (w, loss)
+
+
+def logistic_predict(x, w):
+    y_prob = sigmoid(x @ w)
+    y_pred = y_prob > 0.5
+    return y_pred

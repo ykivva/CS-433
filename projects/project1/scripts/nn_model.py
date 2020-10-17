@@ -278,7 +278,7 @@ class NNModel():
         return -target * 1 / ((pred + epsilon) * len(target)), NNModel.cross_entropy(pred, target)
     
     @staticmethod
-    def sigmoid(output, lower_bound=-30, upper_bound=30):
+    def sigmoid(output):
         """Computes sigmoid function
 
             Args:
@@ -287,9 +287,7 @@ class NNModel():
             Returns:
                 Computed sigmoid function
         """
-        output_bounded = output.copy()
-        output_bounded[output>upper_bound] = upper_bound
-        output_bounded[output<lower_bound] = lower_bound
+        
         return 1. / (1 + np.exp(-output_bounded))
 
     @staticmethod

@@ -44,7 +44,11 @@ class Preprocessing:
         self.means = None
         self.stds = None
     
-    def preprocess(self, data_, lr=0.03, lambda_=1, batch_size=32, epochs=100, degrees=np.arange(2, 4), train=True, models={}):
+    def preprocess(self, data_, lr=0.03, lambda_=1,
+                   batch_size=32, epochs=100,
+                   degrees=np.arange(2, 4), train=True, models={},
+                   momentum=0.9
+                  ):
 
         print("Preprocesing started!\n")
         data = data_.copy() #do not want to change data_
@@ -53,18 +57,19 @@ class Preprocessing:
             self.transform(data)
         data = self.convert_categories_to_one_hot(data)
         
-        data = self.build_poly(data, degrees, self.cols_without_NaNs)
         if self.use_normalization:
             self.means = np.nanmean(data[:,:self.numerical_features], axis=0)
             self.stds = np.nanstd(data[:,:self.numerical_features], axis=0)
             self.normalize(data)
+        
+        data = self.build_poly(data, degrees, self.cols_without_NaNs)
 
         if self.handling_outliers == 'remove':
             data = self.remove_cols_with_NaNs(data)
         elif self.handling_outliers == 'fill_mean':
             data = self.fill_NaNs_with_zeroes(data)
         elif self.handling_outliers == 'predict':
-            data, models = self.predict_Nans(data, lr=lr, lambda_=lambda_, batch_size=batch_size, epochs=epochs, train=train, models=models)
+            data, models = self.predict_Nans(data, lr=lr, lambda_=lambda_, batch_size=batch_size, epochs=epochs, train=train, models=models, momentum=momentum)
         else:
             raise ValueError('Value of handling_NaNs is not acceptable')
 
@@ -101,7 +106,7 @@ class Preprocessing:
         mask = np.any(np.isnan(data), axis=0)
         return data[..., ~mask] 
 
-    def predict_Nans(self, data_, lr=0.03, lambda_=1, batch_size=32, epochs=100, train=True, models={}):
+    def predict_Nans(self, data_, lr=0.03, lambda_=1, batch_size=32, epochs=100, train=True, models={}, momentum=0.9):
         data = data_.copy()
         models = models
         for j in range(data.shape[1]):
@@ -119,7 +124,7 @@ class Preprocessing:
                 model = models[j]
                 model.add_layer(1)
 
-                model.train(train_features, train_labels, lr = lr, lambda_=lambda_, batch_size=batch_size, epochs=epochs, verbose=1, loss_fun='l2')
+                model.train(train_features, train_labels, lr = lr, lambda_=lambda_, batch_size=batch_size, epochs=epochs, verbose=1, loss_fun='l2', momentum=momentum)
             else:
                 model = models[j]
 

@@ -40,7 +40,8 @@ class NNModel():
         """
         self.num_layers += 1
 
-        w = np.random.randn(units, self.features_out)
+        #w = np.random.randn(units, self.features_out)
+        w = np.random.rand(units, self.features_out) / np.sqrt(units + self.features_out)
         b = np.zeros(units)
 
         self.grads[f'mW{self.num_layers}'] = np.zeros((units, self.features_out))
@@ -109,7 +110,7 @@ class NNModel():
             batch_end = batch_size
             num_batches = x.shape[0] // batch_size
             sum_loss = 0
-            decay *= 3
+            decay *= 2
             while batch_end <= x_shuffled.shape[0]:
                 x_batch = x_shuffled[batch_start:batch_end, ...]
                 y_batch = y_shuffled[batch_start:batch_end, ...]

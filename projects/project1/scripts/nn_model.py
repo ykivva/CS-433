@@ -287,8 +287,10 @@ class NNModel():
             Returns:
                 Computed sigmoid function
         """
-        
-        return 1. / (1 + np.exp(-output_bounded))
+        res = output.copy()
+        res[res > 0] = 1. / (1 + np.exp(-res[res>0]))
+        res[res < 0] = np.exp(res[res < 0]) / (1 + np.exp(res[res < 0]))
+        return res
 
     @staticmethod
     def _get_sigmoid_grad(output):
@@ -304,7 +306,7 @@ class NNModel():
         return act * (1 - act)
 
     @staticmethod
-    def logistic_reg(pred, target):
+    def logistic_reg(pred, target, inf=-10000):
         """Computes logistic_reg loss
 
             Args:
@@ -315,12 +317,22 @@ class NNModel():
                 Computed logistic_reg loss
         """
         pred_sq = np.squeeze(pred)
+        pred_sq = NNModel.sigmoid(pred_sq)
         target_sq = np.squeeze(target)
-        loss = np.sum(-(np.dot(target_sq, np.log(pred_sq)) + np.dot((1-target_sq), np.log(1-pred_sq)))) / len(target_sq)
+        loss = 0
+        loss -= np.sum(np.where(pred_sq[target_sq==1]!=0,
+                                np.log(pred_sq[target_sq==1]),
+                                inf
+                               ))
+        loss -= np.sum(np.where(pred_sq[target_sq==0]!=1,
+                                np.log(1 - pred_sq[target_sq==0]),
+                                inf
+                               ))
+        loss /= len(target_sq)
         return loss
     
     @staticmethod
-    def _get_logistic_reg_grad(pred, target, epsilon=1e-9):
+    def _get_logistic_reg_grad(pred, target):
         """Computes gradients of Binary Cross Entropy loss with respect to the pred
 
             Args:
@@ -331,6 +343,6 @@ class NNModel():
             Returns:
                 Computed gradients and loss
         """
-        grad = -target / (pred + epsilon) + (1 - target) / (1 - pred + epsilon)
+        grad = NNModel.sigmoid(pred) - target
         return grad / len(target), NNModel.logistic_reg(pred, target)
     

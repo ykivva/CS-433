@@ -36,7 +36,7 @@ def forward_backward(y, tX, w, lambda_=0):
     loss /= y.shape[0]
     
     y_mat = y.reshape(output.shape)
-    dh = output - y_mat
+    dh = (output - y_mat) / y.shape[0]
     dw = dh.T @ tX
     grads = dw
     grads[:, 1:] += 2 * lambda_ * w[:, 1:] 

@@ -3,7 +3,7 @@ import numpy as np
 class Preprocessing:
         
     def __init__(self, use_transformations=True, use_normalization=True,
-                 handling_outliers='fill_mean', use_poly_augmentation=False, max_degree=None):
+                 handling_outliers='fill_mean', max_degree=None):
         
         self.categorical_col = 22
         self.categories_num = 4
@@ -31,7 +31,6 @@ class Preprocessing:
         self.use_normalization = use_normalization
         self.handling_outliers = handling_outliers
         assert (self.handling_outliers in ['fill_mean', 'remove', 'predict'])
-        self.use_poly_augmentation = use_poly_augmentation
         self.max_degree = max_degree
         
         #after basic precpocessing categorical column moved
@@ -60,8 +59,8 @@ class Preprocessing:
                 self.stds = np.nanstd(data[:,:self.numerical_features], axis=0)
             self.normalize(data)
         
-        if self.use_poly_augmentation:
-            data = self.build_poly(data)
+        if self.max_degree != None:
+            data = self.build_poly(data, self.max_degree)
 
         if self.handling_outliers == 'remove':
             data = self.remove_cols_with_NaNs(data)
@@ -121,12 +120,11 @@ class Preprocessing:
         data[np.isnan(data)] = 0
         return data    
     
-    def build_poly(self, data_,):
+    def build_poly(self, data_, max_degree):
         numerical_columns_without_NaNs = self.cols_without_NaNs[:-4] #columns to be augmented
         data = data_.copy()
-
-        for deg in range(2,self.max_degree+1):
-            pol_data = data[..., numerical_columns_without_NaNs]**deg
+        for deg in range(2, max_degree+1):
+            pol_data = data_[..., numerical_columns_without_NaNs]**deg
             data = np.hstack((pol_data, data))
         
         return data

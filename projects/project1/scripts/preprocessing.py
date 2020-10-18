@@ -48,8 +48,12 @@ class Preprocessing:
         self.cols_without_NaNs = np.arange(total_cols)[arr]
         self.k_cols_without_NaNs = self.cols_without_NaNs
         
+        #statistics for initial features
         self.means = None
         self.stds = None
+        #statistics for polynomially augmented features, if applicable 
+        self.degrees_means = None
+        self.degrees_stds = None
         
         self.is_fitted = False #whether train set was already fitted to derive mean, stds and NaNprediction model parameters
     
@@ -150,11 +154,18 @@ class Preprocessing:
     def build_poly(self, data_, max_degree):
         numerical_columns_without_NaNs = self.cols_without_NaNs[:-4] #columns to be augmented
         data = data_.copy()
-#         for deg in range(2, max_degree+1):
-#             pol_data = data_[..., numerical_columns_without_NaNs]**deg
-#             data = np.hstack((pol_data, data))
+        if not self.is_fitted:
+            degrees_means = np.array([])
+            degrees_stds = np.array([])
         
-        for col_i in numerical_columns_without_NaNs:
-                pol_data = data_[..., numerical_columns_without_NaNs] * data_[..., col_i:col_i+1]
-                data = np.hstack((pol_data, data))
+        for deg in range(2, max_degree+1):
+            pol_data = data_[..., numerical_columns_without_NaNs]**deg
+            data = np.hstack((pol_data, data))
+            if not self.is_fitted:
+                degrees_means = np.concatenate([np.mean(pol_data, axis=0), degrees_means])
+                degrees_stds = np.concatenate([np.std(pol_data, axis=0), degrees_stds])
+        
+        num_initial_features = self.categories_num + self.numerical_features
+        data[:,:-num_initial_features] = (data[:,:-num_initial_features] - degrees_means) / degrees_stds
+        
         return data

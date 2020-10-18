@@ -1,20 +1,20 @@
 import numpy as np
 
 
-def least_squares(y, tx):
+def least_squares(y, tX):
     """Finds optimal solution for linear regression using normal equations
 
     Args:
         y (nd.array): true predictions
-        tx (nd.array): data features
+        tX (nd.array): data features
 
     Returns:
         Tuple (nd.array, float), where first is parameters and second loss value
     """
-    assert y.shape[0]==tx.shape[0], "First dimenstion of y doesn't match first dimentsion of tx"
+    assert y.shape[0]==tX.shape[0], "First dimenstion of y doesn't match first dimentsion of tX"
 
     #Adds bias parameters
-    x = tx.reshape(y.shape[0], -1)
+    x = tX.reshape(y.shape[0], -1)
     x = np.hstack((np.ones(x.shape[0], 1), x))
 
     w = np.linalg.pinv(x) @ y
@@ -23,22 +23,22 @@ def least_squares(y, tx):
     return (w, loss)
 
 
-def ridge_regression(y, tx, lambda_):
+def ridge_regression(y, tX, lambda_):
     """Finds optimal solution for ridge regression using normal equations
 
     Args:
         y (nd.array): true predictions
-        tx (nd.array): data features
+        tX (nd.array): data features
         labbda_ (float): coefficient for regression
 
     Returns:
         Tuple (nd.array, float), where first is parameters and second loss value
     """
-    assert y.shape[0]==tx.shape[0], "First dimenstion of y doesn't match first dimentsion of tx"
+    assert y.shape[0]==tX.shape[0], "First dimenstion of y doesn't match first dimentsion of tX"
 
     #Adds bias parameters
-    x = tx.reshape(y.shape[0], -1)
-    x = np.hstack((np.ones(tx.shape[0], 1), tx))
+    x = tX.reshape(y.shape[0], -1)
+    x = np.hstack((np.ones(tX.shape[0], 1), tX))
     identity = np.eye(x.shape[0])
     identity[0, 0] = 0
 

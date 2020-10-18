@@ -1,50 +1,50 @@
 import numpy as np
 
 
-def compute_least_squares_loss(y, tx, w):
+def compute_least_squares_loss(y, tX, w):
     '''Compute Least Squares loss
 
     Args:
         y (np.array): true predictions
-        tx (np.array): data features
+        tX (np.array): data features
         w (np.array): model weights
     
     Returns:
         loss (float):
     '''
     n = y.shape[0]
-    errors = y - np.dot(tx,w)
+    errors = y - np.dot(tX,w)
     loss = 1./(2*n) * np.dot(errors.T, errors)
     return loss
 
 
-def compute_least_squares_gradient(y, tx, w):
+def compute_least_squares_gradient(y, tX, w):
     '''Compute gradient of Least Squares loss function
 
     Args:
         y (np.array): true predictions
-        tx (np.array): data features
+        tX (np.array): data features
         w (np.array): model weights
 
     Returns:
         grad (np.array): gradient with respect to model weights
     '''
     n = y.shape[0]
-    error = y - np.dot(tx,w)
-    grad = -1./n * np.dot(tx.T, error)
+    error = y - np.dot(tX,w)
+    grad = -1./n * np.dot(tX.T, error)
     return grad
 
 
-def least_squares_GD(y, tx, initial_w, max_iters, gamma):
+def least_squares_GD(y, tX, initial_w, max_iters, lr):
     '''
     Gradient Descent for Least Squares method
 
     Args:
         y (np.array): true predictions
-        tx (np.array): data features
+        tX (np.array): data features
         initial_w (np.array) initial model weights
         max_iters (int): number of iterations
-        gamma (float): learning rate parameter
+        lr (float): learning rate parameter
 
     Returns:
         w (np.array): model weigths after the last iteration
@@ -52,7 +52,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     '''
     w = initial_w
     for i in range(max_iters):
-        grad = compute_least_squares_gradient(y, tx, w)
-        w = w - gamma*grad
-    loss = compute_least_squares_loss(y, tx, w)
+        grad = compute_least_squares_gradient(y, tX, w)
+        w = w - lr*grad
+    loss = compute_least_squares_loss(y, tX, w)
     return (w, loss)

@@ -41,12 +41,12 @@ class Preprocessing:
         
         #after basic precpocessing categorical column moved
         self.cols_with_NaNs = np.array([(x if x < self.categorical_col else x-1) for x in self.cols_with_outliers])
-        self.k_cols_with_NaNs = self.cols_with_NaNs
+        self.k_cols_with_NaNs = self.cols_with_NaNs.copy()
         total_cols = self.numerical_features + self.categories_num
         arr = np.array([True]*total_cols)
         arr[self.cols_with_NaNs] = False
         self.cols_without_NaNs = np.arange(total_cols)[arr]
-        self.k_cols_without_NaNs = self.cols_without_NaNs
+        self.k_cols_without_NaNs = self.cols_without_NaNs.copy()
         
         #statistics for initial features
         self.means = None
@@ -61,9 +61,9 @@ class Preprocessing:
         if self.is_fitted:
             self.categorical_col = self.k_categorical_col
             self.numerical_features = self.k_numerical_features
-            self.cols_with_outliers = self.k_cols_with_outliers
-            self.cols_with_NaNs = self.k_cols_with_NaNs
-            self.cols_without_NaNs = self.k_cols_without_NaNs
+            self.cols_with_outliers = self.k_cols_with_outliers.copy()
+            self.cols_with_NaNs = self.k_cols_with_NaNs.copy()
+            self.cols_without_NaNs = self.k_cols_without_NaNs.copy()
 
         data = data_.copy() #do not want to change data_
         self.replace_outliers_by_nan(data)
@@ -116,7 +116,7 @@ class Preprocessing:
                 self.cols_without_NaNs += 1
                 self.categorical_col += 1
                 self.numerical_features += 1
-                self.cols_without_NaNs = np.append(self.cols_without_NaNs, 0)
+                self.cols_without_NaNs = np.append(np.zeros(1, dtype=np.int), self.cols_without_NaNs)
                 shift += 1
         return data
     
@@ -157,17 +157,17 @@ class Preprocessing:
         numerical_columns_without_NaNs = self.cols_without_NaNs[:-4] #columns to be augmented
         data = data_.copy()
         if not self.is_fitted:
-            degrees_means = np.array([])
-            degrees_stds = np.array([])
+            self.degrees_means = np.array([])
+            self.degrees_stds = np.array([])
         
         for deg in range(2, max_degree+1):
             pol_data = data_[..., numerical_columns_without_NaNs]**deg
             data = np.hstack((pol_data, data))
             if not self.is_fitted:
-                degrees_means = np.concatenate([np.mean(pol_data, axis=0), degrees_means])
-                degrees_stds = np.concatenate([np.std(pol_data, axis=0), degrees_stds])
+                self.degrees_means = np.concatenate([np.mean(pol_data, axis=0), self.degrees_means])
+                self.degrees_stds = np.concatenate([np.std(pol_data, axis=0), self.degrees_stds])
         
         num_initial_features = self.categories_num + self.numerical_features
-        data[:,:-num_initial_features] = (data[:,:-num_initial_features] - degrees_means) / degrees_stds
+        data[:,:-num_initial_features] = (data[:,:-num_initial_features] - self.degrees_means) / self.degrees_stds
         
         return data

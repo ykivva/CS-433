@@ -108,14 +108,16 @@ class Preprocessing:
             for col in self.transformations.keys():
                 data[:,col] = self.transformations[col](data[:,col])
         else:
+            shift = 0
             for col in self.transformations.keys():
-                data = np.hstack((self.transformations[col](data[:,col:col+1]), data))
+                data = np.hstack((self.transformations[col](data[:,col+shift:col+shift+1]), data))
                 self.cols_with_NaNs += 1
                 self.cols_with_outliers += 1
                 self.cols_without_NaNs += 1
                 self.categorical_col += 1
                 self.numerical_features += 1
                 self.cols_without_NaNs = np.append(self.cols_without_NaNs, 0)
+                shift += 1
         return data
     
     def convert_categories_to_one_hot(self, data):

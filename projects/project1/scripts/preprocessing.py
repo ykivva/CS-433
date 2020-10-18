@@ -89,7 +89,7 @@ class Preprocessing:
             raise ValueError('Value of handling_NaNs is not acceptable')
         
         if not self.is_fitted:
-            self.is_fitted == True
+            self.is_fitted = True
         
         return data
     

@@ -47,7 +47,6 @@ class Preprocessing:
         self.is_fitted = False #whether train set was already fitted to derive mean, stds and NaNprediction model parameters
     
     def preprocess(self, data_):
-
         data = data_.copy() #do not want to change data_
         self.replace_outliers_by_nan(data)
         if self.use_transformations:
@@ -98,7 +97,7 @@ class Preprocessing:
             val = data[i, self.categorical_col]
             #check for fidelity
             if (0 <= val and val < self.categories_num):
-                data_categorical[i,int(val)] = 1
+                data_categorical[i, int(val)] = 1
         data = np.concatenate([data_numerical, data_categorical], axis=1)
         return data
 

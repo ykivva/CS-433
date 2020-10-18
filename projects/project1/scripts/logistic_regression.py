@@ -97,12 +97,11 @@ def logistic_regression_reg(y, tX, lambda_, initial_w, max_iter, lr, batch_size=
     w = initial_w.copy()
 
     for iter_ in range(max_iter):
-        
         sample_num = np.random.choice(tX.shape[0], size=batch_size, replace=False)
         x_sgd = x[sample_num]
         y_sgd = y[sample_num]
         loss, grads = forward_backward(y_sgd, x_sgd, w, lambda_)
-        w = w - lr * grads
+        w = w - lr * grads / (1 + iter_**2)
         if verbose==1:
             bar  = (iter_*20//max_iter)*"#" + " " * (20 - (iter_*20//max_iter))
             print(f'\r>Iter #{iter_}:\t[{bar}]; Loss: {loss}, {lr}', end='')
@@ -115,4 +114,4 @@ def logistic_pred(tX, w):
     x = np.hstack((np.ones((x.shape[0], 1)), x))
     y_prob = sigmoid(x @ w.T)
     y_pred = y_prob > 0.5
-    return y_pred
+    return y_pred.squeeze()

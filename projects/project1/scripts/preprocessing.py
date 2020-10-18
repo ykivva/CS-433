@@ -1,7 +1,13 @@
 import numpy as np
 
 class Preprocessing:
-        
+
+    k_categorical_col = 22
+    k_numerical_features = 29
+    k_cols_with_outliers = np.array([0, 4, 5, 6, 12, 23, 24, 25, 26, 27, 28])
+    k_cols_with_NaNs = None
+    k_cols_without_NaNs = None
+
     def __init__(self, use_transformations=True, use_normalization=True,
                  handling_outliers='fill_mean', max_degree=None):
         
@@ -35,10 +41,12 @@ class Preprocessing:
         
         #after basic precpocessing categorical column moved
         self.cols_with_NaNs = np.array([(x if x < self.categorical_col else x-1) for x in self.cols_with_outliers])
+        self.k_cols_with_NaNs = self.cols_with_NaNs
         total_cols = self.numerical_features + self.categories_num
         arr = np.array([True]*total_cols)
         arr[self.cols_with_NaNs] = False
         self.cols_without_NaNs = np.arange(total_cols)[arr]
+        self.k_cols_without_NaNs = self.cols_without_NaNs
         
         self.means = None
         self.stds = None
@@ -46,6 +54,13 @@ class Preprocessing:
         self.is_fitted = False #whether train set was already fitted to derive mean, stds and NaNprediction model parameters
     
     def preprocess(self, data_, transform_inplace=True):
+        if self.is_fitted:
+            self.categorical_col = self.k_categorical_col
+            self.numerical_features = self.k_numerical_features
+            self.cols_with_outliers = self.k_cols_with_outliers
+            self.cols_with_NaNs = self.k_cols_with_NaNs
+            self.cols_without_NaNs = self.k_cols_without_NaNs
+
         data = data_.copy() #do not want to change data_
         self.replace_outliers_by_nan(data)
         if self.use_transformations:

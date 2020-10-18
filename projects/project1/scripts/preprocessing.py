@@ -45,11 +45,11 @@ class Preprocessing:
         
         self.is_fitted = False #whether train set was already fitted to derive mean, stds and NaNprediction model parameters
     
-    def preprocess(self, data_):
+    def preprocess(self, data_, transform_inplace=True):
         data = data_.copy() #do not want to change data_
         self.replace_outliers_by_nan(data)
         if self.use_transformations:
-            self.transform(data)
+            data = self.transform(data, inplace=transform_inplace)
         data = self.convert_categories_to_one_hot(data)
         
         if self.use_normalization:
@@ -80,12 +80,24 @@ class Preprocessing:
     def normalize(self, data):
         data[:,:self.numerical_features] = (data[:,:self.numerical_features]-self.means)/self.stds
     
-    def transform(self, data):
+    def transform(self, data_, inplace=True):
         '''
         transforming some features inplace (i. e. without saving features before transformations)
         '''
-        for col in self.transformations.keys():
-            data[:,col] = self.transformations[col](data[:,col])
+        data = data_.copy()
+        if inplace:
+            for col in self.transformations.keys():
+                data[:,col] = self.transformations[col](data[:,col])
+        else:
+            for col in self.transformations.keys():
+                data = np.hstack((self.transformations[col](data[:,col:col+1]), data))
+                self.cols_with_NaNs += 1
+                self.cols_with_outliers += 1
+                self.cols_without_NaNs += 1
+                self.categorical_col += 1
+                self.numerical_features += 1
+                self.cols_without_NaNs = np.append(self.cols_without_NaNs, 0)
+        return data
     
     def convert_categories_to_one_hot(self, data):
         
@@ -123,8 +135,11 @@ class Preprocessing:
     def build_poly(self, data_, max_degree):
         numerical_columns_without_NaNs = self.cols_without_NaNs[:-4] #columns to be augmented
         data = data_.copy()
-        for deg in range(2, max_degree+1):
-            pol_data = data_[..., numerical_columns_without_NaNs]**deg
-            data = np.hstack((pol_data, data))
+#         for deg in range(2, max_degree+1):
+#             pol_data = data_[..., numerical_columns_without_NaNs]**deg
+#             data = np.hstack((pol_data, data))
         
+        for col_i in numerical_columns_without_NaNs:
+                pol_data = data_[..., numerical_columns_without_NaNs] * data_[..., col_i:col_i+1]
+                data = np.hstack((pol_data, data))
         return data

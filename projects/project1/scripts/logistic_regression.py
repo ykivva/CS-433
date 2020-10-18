@@ -3,7 +3,7 @@ import numpy as np
 
 def sigmoid(x):
     res = x.copy()
-    res[res > 0] = 1. / (1 + np.exp(res[res>0]))
+    res[res > 0] = 1. / (1 + np.exp(-res[res>0]))
     res[res < 0] = np.exp(res[res < 0]) / (1 + np.exp(res[res < 0]))
     return res
 
@@ -33,7 +33,9 @@ def forward_backward(y, tx, w, lambda_=0):
     h = tx @ w
     output = sigmoid(h)
     
+    print(output)
     loss = -np.dot(y,  np.log(output)) - np.dot(1 - y, np.log(1 - output)) + lambda_ * np.linalg.norm(w[1:, ...])**2
+    print(loss)
     
     y_mat = y.reshape(y.shape[0], -1)
     doutput = y_mat / (output + epsilon) + (1 - y_mat) / (1 - output + epsilon)
@@ -62,7 +64,7 @@ def logistic_regression(y, tx, initial_w, max_iter, gamma, batch_size=1):
 
     #Adds bias parameters
     x = tx.reshape(y.shape[0], -1)
-    x = np.hstack((np.ones(x.shape[0], 1), x))
+    x = np.hstack((np.ones((x.shape[0], 1)), x))
     w = initial_w
     assert x.shape[1]==w.shape[0], "Second dimention of x doesn't match first dimention of w" 
 
@@ -76,7 +78,7 @@ def logistic_regression(y, tx, initial_w, max_iter, gamma, batch_size=1):
     return (w, loss)
 
 
-def reg_logistic_regression(y, tx, lambda_, initial_w, max_iter, gamma, batch_size=1):
+def logistic_regression_reg(y, tx, lambda_, initial_w, max_iter, gamma, batch_size=1, verbose=1):
     '''Stochastic Gradient Descent for logistic regression method using batch size = 1
     
     Args:
@@ -92,22 +94,26 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iter, gamma, batch_si
     '''
     #Adds bias parameters
     x = tx.reshape(y.shape[0], -1)
-    x = np.hstack((np.ones(x.shape[0], 1), x))
+    x = np.hstack((np.ones((x.shape[0], 1)), x))
     assert x.shape[1]==initial_w.shape[0], "Second dimention of x doesn't match first dimention of w" 
 
     w = initial_w
 
     for iter_ in range(max_iter):
+        
         sample_num = np.random.choice(tx.shape[0], size=batch_size)
         x_sgd = x[sample_num]
         y_sgd = y[sample_num]
         loss, grads = forward_backward(y_sgd, x_sgd, w, lambda_)
         w -= gamma * grads
+        if verbose==1:
+                bar  = (iter_*20//max_iter)*"#" + " " * (20 - (iter_*20//max_iter))
+                print(f'\r>Iter #{iter_}:\t[{bar}]; Loss: {loss}', end='')
 
     return (w, loss)
 
 
-def logistic_predict(x, w):
+def logistic_pred(x, w):
     y_prob = sigmoid(x @ w)
     y_pred = y_prob > 0.5
     return y_pred

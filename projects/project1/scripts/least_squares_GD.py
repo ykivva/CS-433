@@ -50,6 +50,8 @@ def least_squares_GD(y, tX, initial_w, max_iters, lr):
         w (np.array): model weigths after the last iteration
         loss (float): loss value after the last iteration
     '''
+    assert y.shape[0]==tX.shape[0], "First dimenstion of y doesn't match first dimentsion of tX"
+    
     w = initial_w
     for i in range(max_iters):
         grad = compute_least_squares_gradient(y, tX, w)

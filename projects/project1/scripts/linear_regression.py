@@ -12,13 +12,10 @@ def least_squares(y, tX):
         Tuple (nd.array, float), where first is parameters and second loss value
     """
     assert y.shape[0]==tX.shape[0], "First dimenstion of y doesn't match first dimentsion of tX"
-
-    #Adds bias parameters
-    x = tX.reshape(y.shape[0], -1)
-    x = np.hstack((np.ones(x.shape[0], 1), x))
-
-    w = np.linalg.pinv(x) @ y
-    loss = np.linalg.norm(x @ w - y)**2
+    
+    n = tX.shape[0]
+    w = np.linalg.pinv(tX) @ y
+    loss = 1/(2*n) * np.linalg.norm(tX @ w - y)**2
 
     return (w, loss)
 
@@ -36,13 +33,10 @@ def ridge_regression(y, tX, lambda_):
     """
     assert y.shape[0]==tX.shape[0], "First dimenstion of y doesn't match first dimentsion of tX"
 
-    #Adds bias parameters
-    x = tX.reshape(y.shape[0], -1)
-    x = np.hstack((np.ones(tX.shape[0], 1), tX))
-    identity = np.eye(x.shape[0])
-    identity[0, 0] = 0
-
-    w = np.linalg.pinv(x.T @ x + lambda_*identity) @ x.T @ y
-    loss = np.linalg.norm(w @ x - y)**2 + lambda_ * np.linalg.norm(w[1:, ...])**2
+    n = tX.shape[0]
+    lambda_hat = 2 * n * lambda_
+    identity = np.eye(tX.shape[1])
+    w = np.linalg.inv(tX.T @ tX + lambda_hat*identity) @ tX.T @ y
+    loss = 1/(2*n) * np.linalg.norm(tX @ w - y)**2 + lambda_ * np.linalg.norm(w)**2
     
     return (w, loss)

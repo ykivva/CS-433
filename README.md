@@ -38,9 +38,10 @@ There you can find 6 implemented basic algorithms for binary classification and 
 ### **`nn_model.py`**
 Module in which implemented class ```NNModel``` for training specified model and store its weights.
 - ```__init__(self,  features_in)```: creates an instance of class, input of which has *features_in* features
-- ```add_layer(self, units, activation=None)```: regular denesely-connected NN layer
-  - ```units``` - number of features in the layer
-  - ```activation``` - if `sigmoid`, after linear transformation sigmoid function applied to its output; if *None* any function applies to the output of linear transformation
+- ```add_layer(self, units, activation=None, seed=1)```: regular denesely-connected NN layer
+  - ```units```: number of features in the layer
+  - ```activation```: if `sigmoid`, after linear transformation sigmoid function applied to its output; if *None* any function applies to the output of linear transformation
+  - ```seed```: if *None*,  seed doesn't used; otherwise weight initialization fixed for every new Model
 - ```train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0, loss_fun='l2', momentum=0)```: train the specified model
   - ```x```: train features
   - ```y```: train labels
@@ -58,8 +59,10 @@ Module in which implemented class ```Preprocessing``` to make transformation wit
   - ```use_transformations```: if *True* it will use transformation for some features specified in class so that their distribution will look more normal-like
   - ```handling_outliers```: if 'fill_mean', it replace all *nan/-999* values with their mean (after normalization *mean*=0); if 'remove', it just removes all columns with *nan/-999*
   - ```max_degree```: if `None` it will not use data augmentation, if *int* it will add to the features their degrees from 1 to max_degree(included)
-- ```preprocess(self, data_, transform_inplace=True)```: performs data preprocessing to the *data_* and returns its copy
+- ``` def preprocess(self, data_, transform_inplace=True, pairwise=True, add_exp=False)```: performs data preprocessing to the *data_* and returns its copy
   - ```transform_inplace```: if True transformation will be done in place, otherwise added transformed data like new features
+  - ```pairwise```: add to the features pairwise multiplication of numerical features in *data_*
+  - ```add_exp```: add to the features exponent value of numerical features in *data_*
 
 ### **`project1.ipynb`**
 Notebook for experimentations with training and predicting.

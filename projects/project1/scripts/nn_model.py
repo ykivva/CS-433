@@ -110,7 +110,7 @@ class NNModel():
             batch_end = batch_size
             num_batches = x.shape[0] // batch_size
             sum_loss = 0
-            decay *= 2
+            decay *= 1.5
             while batch_end <= x_shuffled.shape[0]:
                 x_batch = x_shuffled[batch_start:batch_end, ...]
                 y_batch = y_shuffled[batch_start:batch_end, ...]

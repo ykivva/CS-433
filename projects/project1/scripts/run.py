@@ -29,23 +29,24 @@ y_train = y_train[shuffle]
 x_train = x_train[shuffle]
 
 #Set parameters
-accuracy = 100
 use_transformation = True
 handling_outlier = 'fill_mean'
 transform_inplace = False
-max_degree = 2
-lr = 1
+max_degree = 15
+pairwise=True
 lambda_ = 0
+lr = 1
+verbose = 1
 batch_size = 64
 epochs = 25
 momentum = 0.9
-verbose = 1
 
 #Make preprocessing
 preprocessing = Preprocessing(use_transformations=use_transformation,
                               handling_outliers=handling_outlier,
                               max_degree=max_degree)
-tX_preprocessed = preprocessing.preprocess(data_=tX, transform_inplace=transform_inplace)
+                        
+tX_preprocessed = preprocessing.preprocess(data_=tX, transform_inplace=transform_inplace, pairwise=True)
 
 #Initialization and training the model
 model = NNModel(tX_preprocessed.shape[1])

@@ -57,7 +57,7 @@ class Preprocessing:
         
         self.is_fitted = False #whether train set was already fitted to derive mean, stds and NaNprediction model parameters
     
-    def preprocess(self, data_, transform_inplace=True):
+    def preprocess(self, data_, transform_inplace=True, pairwise=True, add_exp=False):
         if self.is_fitted:
             self.categorical_col = self.k_categorical_col
             self.numerical_features = self.k_numerical_features
@@ -79,7 +79,7 @@ class Preprocessing:
             self.normalize(data)
         
         if self.max_degree != None:
-            data = self.build_poly(data, self.max_degree)
+            data = self.build_poly(data, self.max_degree, pairwise=pairwise, add_exp=add_exp)
 
         if self.handling_outliers == 'remove':
             data = self.remove_cols_with_NaNs(data)
@@ -153,14 +153,33 @@ class Preprocessing:
         data[np.isnan(data)] = 0
         return data    
     
-    def build_poly(self, data_, max_degree):
-        numerical_columns_without_NaNs = self.cols_without_NaNs[:-4] #columns to be augmented
+    def build_poly(self, data_, max_degree=2, pairwise=False, add_exp=False):
+        numerical_columns_without_NaNs = self.cols_without_NaNs[:-4].copy() #columns to be augmented
         data = data_.copy()
+        min_degree=2
         if not self.is_fitted:
             self.degrees_means = np.array([])
             self.degrees_stds = np.array([])
         
-        for deg in range(2, max_degree+1):
+        if add_exp:
+            for col in numerical_columns_without_NaNs:
+                exp_data = np.exp(data_[:, numerical_columns_without_NaNs])
+                data = np.hstack((exp_data, data))
+                if not self.is_fitted:
+                    self.degrees_means = np.concatenate([np.mean(exp_data, axis=0), self.degrees_means])
+                    self.degrees_stds = np.concatenate([np.std(exp_data, axis=0), self.degrees_stds])
+
+        
+        if pairwise:
+            for col in numerical_columns_without_NaNs:
+                indx = numerical_columns_without_NaNs[numerical_columns_without_NaNs>col]
+                pairwise_mult = data_[:, col:col+1] * data_[:, indx]
+                data = np.hstack((pairwise_mult, data))
+                if not self.is_fitted:
+                    self.degrees_means = np.concatenate([np.mean(pairwise_mult, axis=0), self.degrees_means])
+                    self.degrees_stds = np.concatenate([np.std(pairwise_mult, axis=0), self.degrees_stds])
+        
+        for deg in range(min_degree, max_degree+1):
             pol_data = data_[..., numerical_columns_without_NaNs]**deg
             data = np.hstack((pol_data, data))
             if not self.is_fitted:

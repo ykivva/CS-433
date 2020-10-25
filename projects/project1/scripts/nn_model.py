@@ -31,13 +31,13 @@ class NNModel():
         self.features_out = features_in
         self.num_layers = 0
 
-    def add_layer(self, units, activation=None, seed=None):
+    def add_layer(self, units, activation=None, seed=1):
         """Add layer to the end of the model
 
             Args:
                 units (int): size of the layer (number of unit/neurons in the layer)
                 activation (string): activation to apply for the units in the layer, if None no activations is applied
-                seed (int): randomness parameter
+                seed (None or int): randomness parameter
         """
         self.num_layers += 1
         
@@ -80,7 +80,7 @@ class NNModel():
         return output
         
     
-    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0, loss_fun='l2', momentum=0, seed=None):
+    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0, loss_fun='l2', momentum=0, seed=1):
         """Train model
 
             Args:
@@ -92,7 +92,7 @@ class NNModel():
                 batch_size (int): size of batch feeded to the model
                 epochs (int): number of training epochs
                 verbose (int): if equals to 1, it will output loss for every 10 epochs
-                seed (int): randomness parameter
+                seed (None or int): randomness parameter
         """
         if seed != None:
             np.random.seed(seed)

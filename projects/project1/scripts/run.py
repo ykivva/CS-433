@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import pandas as pd
 from proj1_helpers import *
 from preprocessing import *
 from nn_model import *
@@ -32,9 +31,9 @@ y = convert_labels(y)
 use_transformation = True
 handling_outlier = 'fill_mean'
 transform_inplace = False
-max_degree = 2
-pairwise=True
-add_exp = True
+max_degree = 5
+pairwise = True
+add_exp = False
 lambda_ = 0
 lr = 1
 verbose = 1
@@ -45,7 +44,7 @@ momentum = 0.9
 #Initialize and make preprocessing
 preprocessing = Preprocessing(use_transformations=use_transformation,
                               handling_outliers=handling_outlier,
-                              max_degree=max_degree)        
+                              max_degree=max_degree)                     
 tX_preprocessed = preprocessing.preprocess(data_=tX, transform_inplace=transform_inplace, pairwise=pairwise, add_exp=add_exp)
 
 #Initialization and training the model
@@ -57,17 +56,19 @@ model.train(tX_preprocessed, y,
             epochs=epochs, verbose=verbose,
             loss_fun='logistic_reg', momentum=momentum)
 
-
 y_pred = model.predict(tX_preprocessed)
 y_pred = y_pred > 0
 y_pred = y_pred.squeeze()
 print('\nAccuracy on the training set:', (y_pred==y).mean())
 
+#Load test data
 DATA_TEST_PATH = DATA_TRAIN_PATH = os.path.join(os.getcwd(), '../data/test.csv')
 _, tX_test, ids_test = load_csv_data(DATA_TEST_PATH)
 
+#Preprocessing of test data
 x_test = preprocessing.preprocess(data_=tX_test, transform_inplace=transform_inplace, pairwise=pairwise, add_exp=add_exp)
 
+#Create submission
 OUTPUT_PATH = 'prediction.csv' # TODO: fill in desired name of output file for submission
 y_pred = model.predict(x_test)
 res = y_pred>0

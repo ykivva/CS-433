@@ -1,3 +1,7 @@
+projects/project1/Dockerfile
+projects/project1/.dockerignore
+projects/project1/notebook_pod.yml
+projects/project1/scripts/prediction.csv
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

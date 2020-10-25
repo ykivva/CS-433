@@ -18,14 +18,12 @@ class Preprocessing:
     k_cols_with_NaNs = None
     k_cols_without_NaNs = None
 
-    def __init__(self, use_transformations=True, use_normalization=True,
-                 handling_outliers='fill_mean', max_degree=None):
+    def __init__(self, use_transformations=True, handling_outliers='fill_mean', max_degree=None):
         '''
         Initialize instance of Preprocessing.
         
         Args:
             use_transformations (bool): whether to apply transformations for some features to make their distribution more normal-like
-            use_normalization (bool): whether to apply features normalization
             handling_outliers (string): mode of habdling outliers. Can be 'fill_mean' or 'remove' (i. e. remove all columns that contain at least one outlier)
             max_degree (None or int): if int, max degree for polynomial features augmentation. If None, polynomial features augmentation will not be applied
         '''
@@ -53,7 +51,6 @@ class Preprocessing:
             26: lambda x: np.log(x-29)
         }
         self.use_transformations = use_transformations
-        self.use_normalization = use_normalization
         self.handling_outliers = handling_outliers
         assert (self.handling_outliers in ['fill_mean', 'remove'])
         self.max_degree = max_degree
@@ -99,12 +96,11 @@ class Preprocessing:
             data = self.transform(data, transform_inplace)
         data = self.convert_categories_to_one_hot(data)
         
-        if self.use_normalization:
-            if not self.is_fitted:
-                #fitting means and stds parameters
-                self.means = np.nanmean(data[:,:self.numerical_features], axis=0)
-                self.stds = np.nanstd(data[:,:self.numerical_features], axis=0)
-            self.normalize(data)
+        if not self.is_fitted:
+            #fitting means and stds parameters
+            self.means = np.nanmean(data[:,:self.numerical_features], axis=0)
+            self.stds = np.nanstd(data[:,:self.numerical_features], axis=0)
+        self.normalize(data)
         
         if self.max_degree != None:
             data = self.build_poly(data, self.max_degree, pairwise=pairwise, add_exp=add_exp)

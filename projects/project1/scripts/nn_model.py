@@ -31,15 +31,18 @@ class NNModel():
         self.features_out = features_in
         self.num_layers = 0
 
-    def add_layer(self, units, activation=None):
+    def add_layer(self, units, activation=None, seed=None):
         """Add layer to the end of the model
 
             Args:
                 units (int): size of the layer (number of unit/neurons in the layer)
                 activation (string): activation to apply for the units in the layer, if None no activations is applied
+                seed (int): randomness parameter
         """
         self.num_layers += 1
-
+        
+        if seed != None:
+            np.random.seed(seed)
         #w = np.random.randn(units, self.features_out)
         w = np.random.rand(units, self.features_out) / np.sqrt(units + self.features_out)
         b = np.zeros(units)
@@ -77,7 +80,7 @@ class NNModel():
         return output
         
     
-    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0, loss_fun='l2', momentum=0):
+    def train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0, loss_fun='l2', momentum=0, seed=None):
         """Train model
 
             Args:
@@ -89,7 +92,11 @@ class NNModel():
                 batch_size (int): size of batch feeded to the model
                 epochs (int): number of training epochs
                 verbose (int): if equals to 1, it will output loss for every 10 epochs
+                seed (int): randomness parameter
         """
+        if seed != None:
+            np.random.seed(seed)
+        
         self.zero_grad()
 
         loss = 1e10
@@ -289,7 +296,7 @@ class NNModel():
                 Computed sigmoid function
         """
         res = output.copy()
-        res[res > 0] = 1. / (1 + np.exp(-res[res>0]))
+        res[res >= 0] = 1. / (1 + np.exp(-res[res>=0]))
         res[res < 0] = np.exp(res[res < 0]) / (1 + np.exp(res[res < 0]))
         return res
 

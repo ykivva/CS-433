@@ -54,7 +54,7 @@ def least_squares_GD(y, tX, initial_w, max_iters, lr):
     
     w = initial_w
     for i in range(max_iters):
+        loss = compute_least_squares_loss(y, tX, w)
         grad = compute_least_squares_gradient(y, tX, w)
         w = w - lr*grad
-    loss = compute_least_squares_loss(y, tX, w)
     return (w, loss)

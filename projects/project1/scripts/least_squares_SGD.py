@@ -21,9 +21,8 @@ def least_squares_SGD(y, tX, initial_w, max_iters, lr):
     w = initial_w
     batch_numbers = np.random.randint(0, y.shape[0], size=max_iters)
     for i in batch_numbers:
+        loss = compute_least_squares_loss(y[i:i+1], tX[i:i+1], w)
         grad = compute_least_squares_gradient(y[i:i+1], tX[i:i+1], w)
         w = w - lr*grad
     
-    last_batch = batch_numbers[-1]
-    loss = compute_least_squares_loss(y[last_batch:last_batch+1], tX[last_batch:last_batch+1], w)
     return (w, loss)

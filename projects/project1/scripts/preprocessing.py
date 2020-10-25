@@ -76,15 +76,6 @@ class Preprocessing:
         
         self.is_fitted = False #whether train set was already fitted to derive some variable required for preprocessing
     
-<<<<<<< HEAD
-    def preprocess(self, data_, transform_inplace=True, pairwise=True, add_exp=False):
-        if self.is_fitted:
-            self.categorical_col = self.k_categorical_col
-            self.numerical_features = self.k_numerical_features
-            self.cols_with_outliers = self.k_cols_with_outliers.copy()
-            self.cols_with_NaNs = self.k_cols_with_NaNs.copy()
-            self.cols_without_NaNs = self.k_cols_without_NaNs.copy()
-=======
     def preprocess(self, data_, transform_inplace=True):
         '''
         Preprocess data_. The first fitted dataset will be used to derived means and stds for normalization of all further datasets fitted
@@ -101,7 +92,6 @@ class Preprocessing:
         self.cols_with_outliers = self.k_cols_with_outliers.copy()
         self.cols_with_NaNs = self.k_cols_with_NaNs.copy()
         self.cols_without_NaNs = self.k_cols_without_NaNs.copy()
->>>>>>> 8016ee7438d7329c833a20e87d3d1cfbb3b4d491
 
         data = data_.copy()
         self.replace_outliers_by_nan(data)
@@ -198,10 +188,6 @@ class Preprocessing:
         data[np.isnan(data)] = 0
         return data    
     
-<<<<<<< HEAD
-    def build_poly(self, data_, max_degree=2, pairwise=False, add_exp=False):
-        numerical_columns_without_NaNs = self.cols_without_NaNs[:-4].copy() #columns to be augmented
-=======
     def build_poly(self, data_, max_degree):
         '''
         Apply polynomial augmentation and normalize augmented featerus
@@ -212,7 +198,6 @@ class Preprocessing:
             data (np.array): dataset after applying polynomial augmentation
         '''
         numerical_columns_without_NaNs = self.cols_without_NaNs[:-4] #columns to be augmented
->>>>>>> 8016ee7438d7329c833a20e87d3d1cfbb3b4d491
         data = data_.copy()
         min_degree=2
         if not self.is_fitted:

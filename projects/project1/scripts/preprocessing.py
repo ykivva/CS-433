@@ -76,7 +76,11 @@ class Preprocessing:
         
         self.is_fitted = False #whether train set was already fitted to derive some variable required for preprocessing
     
+<<<<<<< HEAD
     def preprocess(self, data_, transform_inplace=True, pairwise=True, add_exp=False):
+=======
+    def preprocess(self, data_, transform_inplace=True):
+>>>>>>> daa054511a302c11762e7f8753342841657945da
         '''
         Preprocess data_. The first fitted dataset will be used to derived means and stds for normalization of all further datasets fitted
         Args:
@@ -188,7 +192,11 @@ class Preprocessing:
         data[np.isnan(data)] = 0
         return data    
     
+<<<<<<< HEAD
     def build_poly(self, data_, max_degree, pairwise=True, add_exp=False):
+=======
+    def build_poly(self, data_, max_degree):
+>>>>>>> daa054511a302c11762e7f8753342841657945da
         '''
         Apply polynomial augmentation and normalize augmented featerus
         Args:

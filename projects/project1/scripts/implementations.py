@@ -35,7 +35,7 @@ def compute_least_squares_gradient(y, tX, w):
     return grad
 
 
-def least_squares_GD(y, tX, initial_w, max_iters, lr):
+def least_squares_GD(y, tX, initial_w, max_iters, gamma):
     '''
     Gradient Descent for Least Squares method
 
@@ -44,7 +44,7 @@ def least_squares_GD(y, tX, initial_w, max_iters, lr):
         tX (np.array): data features
         initial_w (np.array) initial model weights
         max_iters (int): number of iterations
-        lr (float): learning rate parameter
+        gamma (float): learning rate parameter
 
     Returns:
         w (np.array): model weigths after the last iteration
@@ -56,11 +56,11 @@ def least_squares_GD(y, tX, initial_w, max_iters, lr):
     for i in range(max_iters):
         loss = compute_least_squares_loss(y, tX, w)
         grad = compute_least_squares_gradient(y, tX, w)
-        w = w - lr*grad
+        w = w - gamma*grad
     return (w, loss)
 
 
-def least_squares_SGD(y, tX, initial_w, max_iters, lr):
+def least_squares_SGD(y, tX, initial_w, max_iters, gamma):
     '''Stochastic Gradient Descent for Least Squares method using batch size = 1
     
     Args:
@@ -68,7 +68,7 @@ def least_squares_SGD(y, tX, initial_w, max_iters, lr):
         tX (np.array): data features
         initial_w (np.array): initial model weights
         max_iters (int): number of iterations
-        lr (float): learning rate parameter
+        gamma (float): learning rate parameter
     Returns:
         w (np.array): model weigths after the last iteration
         loss (float): loss value after the last iteration on corresponding batch
@@ -80,7 +80,7 @@ def least_squares_SGD(y, tX, initial_w, max_iters, lr):
     for i in batch_numbers:
         loss = compute_least_squares_loss(y[i:i+1], tX[i:i+1], w)
         grad = compute_least_squares_gradient(y[i:i+1], tX[i:i+1], w)
-        w = w - lr*grad
+        w = w - gamma*grad
     return (w, loss)
 
 
@@ -154,7 +154,7 @@ def logistic_regression_gradient(y, tx, w, lambda_=0):
     return grad
 
 
-def logistic_regression(y, tx, initial_w, max_iter, lr):
+def logistic_regression(y, tx, initial_w, max_iter, gamma):
     '''Gradient Descent for logistic regression method
     
     Args:
@@ -162,7 +162,7 @@ def logistic_regression(y, tx, initial_w, max_iter, lr):
         tx (np.array): data features
         initial_w (np.array): initial model weights
         max_iters (int): number of iterations
-        lr (float): learning rate parameter
+        gamma (float): learning rate parameter
     Returns:
         w (np.array): model weigths after the last iteration
         loss (float): loss value after the last iteration on corresponding batch
@@ -173,12 +173,12 @@ def logistic_regression(y, tx, initial_w, max_iter, lr):
     for iter_ in range(max_iter):
         loss = logistic_regression_loss(y, tx, w)
         grad = logistic_regression_gradient(y, tx, w)        
-        w -= lr * grad
+        w -= gamma * grad
 
     return (w, loss)
 
 
-def reg_logistic_regression(y, tx, lambda_, initial_w, max_iter, lr):
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iter, gamma):
     '''Gradient Descent for regularized logistic regression
     
     Args:
@@ -187,7 +187,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iter, lr):
         lambda_ (float): coefficient for regression
         initial_w (np.array): initial model weights
         max_iters (int): number of iterations
-        lr (float): learning rate parameter
+        gamma (float): learning rate parameter
     Returns:
         w (np.array): model weigths after the last iteration
         loss (float): loss value after the last iteration on corresponding batch
@@ -198,6 +198,6 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iter, lr):
     for iter_ in range(max_iter):
         loss = logistic_regression_loss(y, tx, w, lambda_)
         grad = logistic_regression_gradient(y, tx, w, lambda_)        
-        w -= lr * grad
+        w -= gamma * grad
 
     return (w, loss)

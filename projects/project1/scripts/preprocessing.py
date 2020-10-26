@@ -37,18 +37,18 @@ class Preprocessing:
             0: np.log,
             1: np.sqrt,
             2: np.log,
-            3: lambda x: np.log(1+x),
+            3: lambda x: np.log(1+x), #min value of the feeature = 0
             4: np.sqrt,
             5: np.log,
-            8: lambda x: np.log(1+x),
+            8: lambda x: np.log(1+x), #min value of the feeature = 0
             9: np.log,
             10: np.log,
-            13: lambda x: np.log(x-19),
-            16: lambda x: np.log(x-25),
+            13: lambda x: np.log(x-19), #min value of the feeature = 20
+            16: lambda x: np.log(x-25), #min value of the feeature = 26
             19: np.log,
             21: np.log,
-            23: lambda x: np.log(x-29),
-            26: lambda x: np.log(x-29)
+            23: lambda x: np.log(x-29), #min value of the feeature = 30
+            26: lambda x: np.log(x-29) #min value of the feeature = 30
         }
         self.use_transformations = use_transformations
         self.handling_outliers = handling_outliers

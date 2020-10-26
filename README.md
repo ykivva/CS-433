@@ -4,7 +4,7 @@ This repository consists of implementation for project 1 and project 2 of [**EPF
 # Introduction
 In the folder ```project1``` you can find all the code for [**EPFL Machine Learning Higgs**](https://www.aicrowd.com/challenges/epfl-machine-learning-higgs) competition (2020). The goal of the project was to implement basic algorithms like linear and logistic regressions and their regularized versions, and use them for the competition. Also we have to make data investigation and preprocessing, so we can achieve much better results. 
 
-On this competition our best result was achieved with *accuracy=0.820* and *F1-score=0.693*.
+On this competition our best result was achieved with *accuracy=0.829* and *F1-score=0.741*.
 
 **`Team`**: **SomeGuys**
 

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import ast
 from PIL import Image
 
-FILE_PATH = path=r'/content/gdrive/MyDrive/Univ/ML project 2'
+FILE_PATH = "."
 
 
 class ModelWrapper():

@@ -20,7 +20,7 @@ To reproduce our best results please follow the instructions below:
 ## Implementation
 
 ### **`loss.py`**
-Implementations of some custom losses\metrics for training the model
+Implementations of some custom losses/metrics for training the model
 - ```def soft_dice_loss(y_true, y_pred, smooth = 1):```: soft dice loss
 - ```def weighted_binary_crossentropy(y_true, y_pred, weight=4):```: weighted binary crossentropy loss
 - ```def F1_score(y_true, y_pred, delta=1e-8):```: f1-score
@@ -33,14 +33,14 @@ Consists of implementation of models architecture
 - ```def get_Unet_model(params):```: constructs UNet model with the given parameters. ```params``` - is a dict with the next keys:
   - ```num_blocks```: number of blocks in both encoder and decorder part
   - ```input_side```: size of the image for the input to the model
-  - ```activation```: activation which used in conv layers
+  - ```activation```: activation which is used in conv layers
   - ```regularizer_```: regularizer which used in Conv layers
   - ```starting_num_channels```: number of channels in the input
   - ```optimizer```: optimizer to update weights
-  - ```loss```: loss which used for the output
-  - ```metrics```: metrics which will be used while training
-- ```def get_model_4_blocks(optimizer, loss, metrics, input_side=INPUT_SIDE, base_activation='elu', dropout_rate = 0.2):``` - another implementation of UNet with num_blocks = 4
-- ```def get_model_5_blocks(optimizer, loss, metrics, input_side=INPUT_SIDE, base_activation='elu', dropout_rate = 0.2):``` - another implementation of UNet with num_blocks = 5
+  - ```loss```: loss function to minimize
+  - ```metrics```: metrics to track during the training
+- ```def get_model_4_blocks(optimizer, loss, metrics, input_side=INPUT_SIDE, base_activation='elu', dropout_rate = 0.2):``` - explicit implementation of UNet with num_blocks = 4. It was used as a template to set individual regularization parameters for each layer
+- ```def get_model_5_blocks(optimizer, loss, metrics, input_side=INPUT_SIDE, base_activation='elu', dropout_rate = 0.2):``` - explicit implementation of UNet with num_blocks = 5
 
 
 

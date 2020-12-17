@@ -38,5 +38,8 @@ model_best = ModelWrapper(model_best, params)
 model_best.load_model()
 
 test_data = load_test_data()
-preds = model_best.predict()
+#Causion: without GPU acceleration prediction will run for a long time (maybe an hour)
+#To accelerate prediction, remove parameter shift. But then output will be slightly different
+#to what we submitted
+preds = model_best.predict(test_data, shift=8)
 save_preds(np.round(preds))

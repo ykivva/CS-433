@@ -20,7 +20,7 @@ data/
     images/
 ```
 
-Unfortunately model with the best results was overwritten:(
+***Unfortunately model with the best results was overwritten:(***
 
 We retrain it again and get results *accuracy=0.949* and *F1-score=0.905*. The stored weights of it we save on git in ```saved_model``` folder. To reproduce of these results please follow the instructions below:
 1. Download train and test datasets to the ```data/```

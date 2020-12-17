@@ -12,7 +12,7 @@ from models import *
 from model_wrapper import *
 import os 
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 x_train, y_train = load_train_data()
 y_train = transform_labels(y_train)
@@ -38,15 +38,15 @@ params['path'] = '/saved_models/best'
 model_best = get_Unet_model(params)
 model_best = ModelWrapper(model_best, params)
 
-model_best.train(x_train, y_train, epochs=1, rot_angle=45)
+model_best.train(x_train, y_train, epochs=300, rot_angle=45)
 
-new_lr = 0.1 * model_best.model.optimizer.new_lr
-K.set_value(model_best.model.optimizer.new_lr, new_lr)
+new_lr = 0.1 * model_best.model.optimizer.lr
+K.set_value(model_best.model.optimizer.lr, new_lr)
 
-model_best.train(x_train, y_train, epochs=1, rot_angle=45)
+model_best.train(x_train, y_train, epochs=150, rot_angle=45)
 
-new_lr = 0.1 * model_best.model.optimizer.new_lr
-K.set_value(model_best.model.optimizer.new_lr, new_lr)
+new_lr = 0.1 * model_best.model.optimizer.lr
+K.set_value(model_best.model.optimizer.lr, new_lr)
 
 model_best.train(x_train, y_train, epochs=50, rot_angle=45)
 

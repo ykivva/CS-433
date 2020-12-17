@@ -9,7 +9,7 @@ TRAIN_SAMPLES = 100
 TEST_FEATURES_PATH = FILE_PATH + '/data/test_set_images'
 TEST_SAMPLES = 50
 VALIDATION_RATIO = 0.2
-USE_SHUFFLE = True
+USE_SHUFFLE = False
 
 
 def load_train_data():

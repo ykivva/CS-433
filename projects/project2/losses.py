@@ -21,34 +21,45 @@ def weighted_binary_crossentropy(y_true, y_pred, weight=4):
     return K.mean(weighted_bce)
 
 
-def total_variation(image):
+def total_variation(image, norm='l2'):
     x_diff = K.abs(image[:,1:,:,:] - image[:,:-1,:,:])
     y_diff = K.abs(image[:,:,1:,:] - image[:,:,:-1,:])
-    return K.mean(x_diff)+K.mean(y_diff)
+    res = None
+    if norm == 'l1':
+        res = K.mean(x_diff)+K.mean(y_diff)
+    elif norm == 'l2':
+        res = K.sqrt(K.mean(K.square(x_diff))) + K.sqrt(K.mean(K.square(x_diff)))
+    else:
+        raise Exception('Invalid norm value')
+    return res
 
 
 class SoftDiceLossRegularized():
     
-    def __init__(self, lambd = 1e-2, smooth = 1):
+    def __init__(self, lambd = 1e-2, smooth = 1, norm='l2'):
         
         self.lambd = lambd
         self.smooth = smooth
+        self.norm = norm
     
     def soft_dice_loss_regularized(self, y_true, y_pred):
         
-        return soft_dice_loss(y_true, y_pred, self.smooth) + self.lambd * total_variation(y_pred)
+        return soft_dice_loss(y_true, y_pred, self.smooth) + \
+            self.lambd * total_variation(y_pred, self.norm)
 
 
 class WeightedBCERegularized():
 
-    def __init__(self, lambd = 1e-2, weight = 4):
+    def __init__(self, lambd = 1e-2, weight = 4, norm='l2'):
         
         self.lambd = lambd
         self.weight = weight
+        self.norm = norm
     
     def weighted_bce_regularized(self, y_true, y_pred):
         
-        return weighted_binary_crossentropy(y_true, y_pred, self.weight) + self.lambd * total_variation(y_pred)
+        return weighted_binary_crossentropy(y_true, y_pred, self.weight) + \
+            self.lambd * total_variation(y_pred, self.norm)
 
 
 #custom metrics
@@ -66,10 +77,11 @@ def F1_score(y_true, y_pred, delta=1e-8):
 
 class TV():
     
-    def __init__(self, lambd = 1e-2):
+    def __init__(self, lambd = 1e-2, norm='l2'):
         
         self.lambd = lambd
+        self.norm = norm
     
     def tv(self, y_true, y_pred):
         
-        return self.lambd * total_variation(y_pred)
+        return self.lambd * total_variation(y_pred, self.norm)

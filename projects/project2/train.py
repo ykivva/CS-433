@@ -38,12 +38,12 @@ params['path'] = '/saved_models/best'
 model_best = get_Unet_model(params)
 model_best = ModelWrapper(model_best, params)
 
-model_best.train(x_train, y_train, epochs=300, rot_angle=45)
+model_best.train(x_train, y_train, epochs=1, rot_angle=45)
 
 new_lr = 0.1 * model_best.model.optimizer.new_lr
 K.set_value(model_best.model.optimizer.new_lr, new_lr)
 
-model_best.train(x_train, y_train, epochs=150, rot_angle=45)
+model_best.train(x_train, y_train, epochs=1, rot_angle=45)
 
 new_lr = 0.1 * model_best.model.optimizer.new_lr
 K.set_value(model_best.model.optimizer.new_lr, new_lr)
@@ -51,5 +51,5 @@ K.set_value(model_best.model.optimizer.new_lr, new_lr)
 model_best.train(x_train, y_train, epochs=50, rot_angle=45)
 
 test_data = load_test_data()
-preds = model_best.predict()
+preds = model_best.predict(test_data, shift=8)
 save_preds(np.round(preds))

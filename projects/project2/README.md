@@ -6,7 +6,7 @@ Here you can find all the code for [**EPFL Machine Learning Higgs**](https://www
 
 On this competition our best result was achieved with *accuracy=0.952* and *F1-score=0.909*.
 
-**`Team`**: **SomeGuys**
+**`Team`**: **NotTheLast**
 
 **`TeamMembers`**: **Yaroslav Kivva**, **Denys Pushkin**, **Odysseas Drosis**
 

@@ -11,7 +11,14 @@ On this competition our best result was achieved with *accuracy=0.952* and *F1-s
 **`TeamMembers`**: **Yaroslav Kivva**, **Denys Pushkin**, **Odysseas Drosis**
 
 # Quickstart
-Before running the code make sure that you download train and test datasets to the directory ```data/```.
+Before running the code make sure that you download train and test datasets to the directory ```data/```. You should have such folder structure:
+```
+data/
+  test_set_images/
+  train/
+    groundtruth/
+    images/
+```
 
 To reproduce our best results please follow the instructions below:
 1. Download train and test datasets to the ```data/```

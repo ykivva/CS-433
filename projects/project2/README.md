@@ -20,9 +20,16 @@ data/
     images/
 ```
 
-To reproduce our best results please follow the instructions below:
+Unfortunately model with the best results was overwritten:(
+
+We retrain it again and get results *accuracy=0.949* and *F1-score=0.905*. The stored weights of it we save on git in ```saved_model``` folder. To reproduce of these results please follow the instructions below:
 1. Download train and test datasets to the ```data/```
 2. ```python run.py```
+
+To train the model with our best configuration and get prediction from it, follow instructions below:
+1. Download train and test datasets to the ```data/```
+2. ```python train.py```
+3. ```python run.py```
 
 ## Implementation
 

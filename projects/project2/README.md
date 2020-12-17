@@ -31,7 +31,7 @@ Implementation of training process. To train different models you should change 
 ### **`models.py`**
 Consists of implementation of models architecture
 - ```def get_Unet_model(params):```: constructs UNet model with the given parameters. ```params``` - is a dict with the next keys:
-  - ```num_blocks```: number of downsampling and upsampling blocks + 1
+  - ```num_blocks```: number of blocks in both encoder and decorder part
   - ```input_side```: size of the image for the input to the model
   - ```activation```: activation which used in conv layers
   - ```regularizer_```: regularizer which used in Conv layers

@@ -2,7 +2,7 @@
 This folder consists of implementation for project 2 of [**EPFL CS-433**](https://edu.epfl.ch/coursebook/en/machine-learning-CS-433) course.
 
 # Introduction
-Here you can find all the code for [**EPFL Machine Learning Higgs**](https://www.aicrowd.com/challenges/epfl-ml-road-segmentation) competition (2020). The goal of the project was to create road segmentation algorithm for sattelite images. For the best performance of neural nettwork model we imlement data augmentation process and some losses to train with.
+Here you can find all the code for [**Class Project 2 | Road Segmentation**](https://www.aicrowd.com/challenges/epfl-ml-road-segmentation) competition (2020). The goal of the project was to create road segmentation algorithm for sattelite images. For the best performance of neural nettwork model we imlement data augmentation process and some losses to train with.
 
 On this competition our best result was achieved with *accuracy=0.952* and *F1-score=0.909*.
 

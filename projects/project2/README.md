@@ -1,68 +1,73 @@
 # CS-433
-This repository consists of implementation for project 1 and project 2 of [**EPFL CS-433**](https://edu.epfl.ch/coursebook/en/machine-learning-CS-433) course.
+This folder consists of implementation for project 2 of [**EPFL CS-433**](https://edu.epfl.ch/coursebook/en/machine-learning-CS-433) course.
 
 # Introduction
-In the folder ```project1``` you can find all the code for [**EPFL Machine Learning Higgs**](https://www.aicrowd.com/challenges/epfl-machine-learning-higgs) competition (2020). The goal of the project was to implement basic algorithms like linear and logistic regressions and their regularized versions, and use them for the competition. Also we have to make data investigation and preprocessing, so we can achieve much better results. 
+Here you can find all the code for [**EPFL Machine Learning Higgs**](https://www.aicrowd.com/challenges/epfl-ml-road-segmentation) competition (2020). The goal of the project was to create road segmentation algorithm for sattelite images. For the best performance of neural nettwork model we imlement data augmentation process and some losses to train with.
 
-On this competition our best result was achieved with *accuracy=0.829* and *F1-score=0.741*.
+On this competition our best result was achieved with *accuracy=0.952* and *F1-score=0.909*.
 
 **`Team`**: **SomeGuys**
 
 **`TeamMembers`**: **Yaroslav Kivva**, **Denys Pushkin**, **Odysseas Drosis**
 
 # Quickstart
-Before running the code make sure that you download train and test datasets to the directory ```/projects/project1/data/```.
-All experimentation with training and making prediction was made in ```projects/project1/scripts/```
+Before running the code make sure that you download train and test datasets to the directory ```data/```.
 
 To reproduce our best results please follow the instructions below:
-1. Download train and test datasets to the ```/projects/project1/data/```
-2. ```cd project1```
-3. ```cd script```
-4. ```python run.py```
+1. Download train and test datasets to the ```data/```
+2. ```python run.py```
 
 ## Implementation
 
-### **`proj1_helpers.py`**
-Helper function to load train and test data and to generate output file with predictions for test dataset.
+### **`loss.py`**
+Implementations of some custom losses\metrics for training the model
+- ```def soft_dice_loss(y_true, y_pred, smooth = 1):```: soft dice loss
+- ```def weighted_binary_crossentropy(y_true, y_pred, weight=4):```: weighted binary crossentropy loss
+- ```def F1_score(y_true, y_pred, delta=1e-8):```: f1-score
 
-### **`implementations.py`**
-There you can find 6 implemented basic algorithms for binary classification and regression.
+### **`train.py`**
+Implementation of training process. To train different models you should change parameters defined in the beginning of the file.
 
-- ```least_squares_GD(y, tx, initial_w, max_iters, gamma)```:  Linear regression using gradient descent
-- ```least_squares_SGD(y, tx, initial_w, max_iters, gamma)```: Linear regression using stochastic gradient descent
-- ```least_squares(y, tx)```: Least squares regression using normal equations
-- ```ridge_regression(y, tx, lambda_)```: Ridge regression using normal equations
-- ```logistic_regression(y, tx, initial w, max_iters, gamma)```: Logistic regression using gradient descent or SGD
-- ```reg_logistic_regression(y, tx, lambda_, initial w, max iters, gamma)```: Regularized logistic regression using gradient descent or SGD
+### **`models.py`**
+Consists of implementation of models architecture
+- ```def get_Unet_model(params):```: constructs UNet model with the given parameters. ```params``` - is a dict with the next keys:
+  - ```num_blocks```: number of downsampling and upsampling blocks
+  - ```input_side```: size of the image for the input to the model
+  - ```activation```: activation which used in conv layers
+  - ```regularizer_```: regularizer which used in Conv layers
+  - ```starting_num_channels```: number of channels in the input
+  - ```optimizer```: optimizer to update weights
+  - ```loss```: loss which used for the output
+  - ```metrics```: metrics which will be used while training
+- ```def get_model_4_blocks(optimizer, loss, metrics, input_side=INPUT_SIDE, base_activation='elu', dropout_rate = 0.2):``` - another implementation of UNet with num_blocks = 4
+- ```def get_model_5_blocks(optimizer, loss, metrics, input_side=INPUT_SIDE, base_activation='elu', dropout_rate = 0.2):``` - another implementation of UNet with num_blocks = 5
 
-### **`nn_model.py`**
-Module in which implemented class ```NNModel``` for training specified model and store its weights.
-- ```__init__(self,  features_in)```: creates an instance of class, input of which has *features_in* features
-- ```add_layer(self, units, activation=None, seed=1)```: regular denesely-connected NN layer
-  - ```units```: number of features in the layer
-  - ```activation```: if `sigmoid`, after linear transformation sigmoid function applied to its output; if *None* any function applies to the output of linear transformation
-  - ```seed```: if *None*,  seed doesn't used; otherwise weight initialization fixed for every new Model
-- ```train(self, x, y, lr=0.1, lambda_=0, batch_size=None, epochs=1, verbose=0, loss_fun='l2', momentum=0)```: train the specified model
-  - ```x```: train features
-  - ```y```: train labels
-  - ```lr```: learning rate for the gradient descent
-  - ```batch_size```: batch size for the training
-  - ```epochs```: number of epochs for the training
-  - ```verbose```: if 1 it outputs loss after each epoch; if 0 nothing outputs
-  - ```loss_fun```: *l2* - it computes *MSE* loss; *logistic_reg* - it computes sigmoid for the output and computes Negative Log Likelihood loss
-  - ```momentum```: momentum parameter for gradient descent step with momentum
-  - ```predict(self, x)```: returns output of the model
 
-### **`preprocessing.py`**
-Module in which implemented class ```Preprocessing``` to make transformation with training data, store values which was used for transformation and make the same transformations for test set. Main methods in the class:
-- ```__init__(self, use_transformations=True, use_normalization=True, handling_outliers='fill_mean', max_degree=None)``` : initialize incstance of class which will store parameters and generated variables for preprocesing
-  - ```use_transformations```: if *True* it will use transformation for some features specified in class so that their distribution will look more normal-like
-  - ```handling_outliers```: if 'fill_mean', it replace all *nan/-999* values with their mean (after normalization *mean*=0); if 'remove', it just removes all columns with *nan/-999*
-  - ```max_degree```: if `None` it will not use data augmentation, if *int* it will add to the features their degrees from 1 to max_degree(included)
-- ``` def preprocess(self, data_, transform_inplace=True, pairwise=True, add_exp=False)```: performs data preprocessing to the *data_* and returns its copy
-  - ```transform_inplace```: if True transformation will be done in place, otherwise added transformed data like new features
-  - ```pairwise```: add to the features pairwise multiplication of numerical features in *data_*
-  - ```add_exp```: add to the features exponent value of numerical features in *data_*
 
-### **`project1.ipynb`**
-Notebook for experimentations with training and predicting.
+### **`model_wrapper.py`**
+Consistas the class for wrapping the model constructed from **model.py**, so you can perform training, evaluation, prediction, saving and loading the model:
+- ```def __init__(self, model, params):``` : initialize an instance of ModelWrapper to perform training, evaluation and prediction with given parameters. ```paramms``` is dictionary with the next keys: 
+  - ```input_side```: size of the side of the images to feed to the network
+  - ```image_side```: size of the initial image
+  - ```reg_name```: None or str from ['l1', 'l2'] name of regularizer. It is used only to track the regularization penalty of the model
+  - ```lambd```: regularization parameter
+  - ```batch_size```: batch size
+  - ```path```: path to save and load the model
+  - ```main_metric_fn```: function which used for metric
+  - ```main_metric_name```: string which names this metric
+- ``` train(self, x_train, y_train, x_test=np.array([]), y_test=np.array([]), epochs=1, use_flip=True, use_rot90=True, rot_angle = None, shift=None, save=True)```: performs training of the model with given parameters
+- ```def predict(self, images, shift=None):``` : make prediction for the given images
+  - ```shift```: could be None or int. Specifies how we slide the window when predicting the full_size image
+- ```def evaluate(self, images, y_true, shift=None):``` : evaluates performance on images (use main metric function for generation the score)
+- ```def get_batch(self, x_train, y_train, use_flip=True, use_rot90=True, rot_angle = None):``` : generated batches for the training
+- ```def rotate_image(self, image, angle):``` : rotates image by angle
+- ```def print_state(self):``` : outputs current epoch, metric and loss scores
+- ```def reg_score(self):``` : custom loss function (adds regularization)
+- ```def draw_metrics(self):``` : draw metric scores
+- ```def save_model(self):``` : saves model weights
+- ```def load_model(self):``` : loads the model weights
+
+### **`main.ipynb`**
+Notebook which we used for visualizing results, expolring training porcess
+
+

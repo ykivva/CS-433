@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
 
-FILE_PATH = path=r'/content/gdrive/MyDrive/Univ/ML project 2'
+FILE_PATH = "."
 TRAIN_FEATURES_PATH = FILE_PATH + '/data/train/images'
 TRAIN_LABELS_PATH = FILE_PATH + '/data/train/groundtruth'
 TRAIN_SAMPLES = 100
